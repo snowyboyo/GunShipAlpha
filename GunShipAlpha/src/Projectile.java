@@ -2,12 +2,12 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 
 class Projectile {
-    private double x, y;
+    private int x, y;
    private final double dx;
     private final double dy;
    private static final double SPEED = 5.0;
 
-    public Projectile(double x, double y, Point2D direction) {
+    public Projectile(int x, int y, Point2D direction) {
         this.x = x;
         this.y = y;
         double magnitude = Math.sqrt(direction.getX() * direction.getX() + direction.getY() * direction.getY());
@@ -29,5 +29,10 @@ class Projectile {
     }
     public boolean isInsideEnemy(Rectangle bounds) {
         return bounds.contains(x, y);
+    }
+    public boolean isCollidingWithPlayer() {
+        Rectangle playerBounds = new Rectangle(350, 350, 100, 100);
+        Rectangle projectileBounds = new Rectangle(x, y, 10,10 );
+        return projectileBounds.intersects(playerBounds);
     }
 }
