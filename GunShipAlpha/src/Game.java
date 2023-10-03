@@ -1,43 +1,39 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
-import java.io.File;
-import java.io.IOException;
 import java.util.Random;
 import javax.swing.Timer;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
 
 public class Game extends Canvas {
-    private BufferedImage sprite;
     static GameState gs = new GameState();
     static MouseState ms = new MouseState();
-
+    private Player player = new Player();
+private boolean gameOver = false;
 
     public Game() {
-        loadSprite();
         startGameLoop();
         setupMouseListeners();
     }
 
-    private void loadSprite() {
-        try {
-            sprite = ImageIO.read(new File("src/Images/GunShip.png"));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void startGameLoop() {
         Timer gameLoop = new Timer(16, e -> {
-            moveEnemies();
-            repaint();
+            if (!player.isDead()) {
+                moveEnemies();
+                boolean playerHit = gs.handleProjectileCollisionAndMoveEnemies();
+                if (gs.checkEnemyPlayerCollisions(player, getWidth(), getHeight()) || playerHit) {
+                    player.reduceHealth();
+                }
+
+                repaint();
+            } else {
+                gameOver = true;
+                repaint();
+            }
         });
         gameLoop.start();
     }
+
 
     private void setupMouseListeners() {
         setupMousePressListener();
@@ -55,7 +51,7 @@ public class Game extends Canvas {
     }
 
     private void handleMousePress(MouseEvent e) {
-       ms.handleMousePress(e);
+        ms.handleMousePress(e);
     }
 
     private void setupMouseReleaseListener() {
@@ -74,6 +70,7 @@ public class Game extends Canvas {
             ms.handleMouseRelease(e, this, false);
         }
     }
+
     private void setupMouseDragListener() {
         this.addMouseMotionListener(new MouseAdapter() {
             @Override
@@ -89,9 +86,9 @@ public class Game extends Canvas {
 
     private void moveEnemies() {
         gs.handleEnemyMovement();
-        gs.handleProjectileCollision();
-        gs.removeExpiredProjectilesAndLines(getWidth(),getHeight());
+        gs.removeExpiredProjectilesAndLines(getWidth(), getHeight());
     }
+
     public void spawnBehemoths(int count) {
         Random rand = new Random();
         for (int i = 0; i < count; i++) {
@@ -104,14 +101,24 @@ public class Game extends Canvas {
     }
 
 
-
-
     private spawnEnemiesRandomLocation getSpawnEnemiesRandomLocation(int side, int y, int x, Random rand) {
         switch (side) {
-            case 0: y = 0; x = rand.nextInt(getWidth()); break;
-            case 1: x = getWidth(); y = rand.nextInt(getHeight()); break;
-            case 2: y = getHeight(); x = rand.nextInt(getWidth()); break;
-            case 3: x = 0; y = rand.nextInt(getHeight()); break;
+            case 0:
+                y = 0;
+                x = rand.nextInt(getWidth());
+                break;
+            case 1:
+                x = getWidth();
+                y = rand.nextInt(getHeight());
+                break;
+            case 2:
+                y = getHeight();
+                x = rand.nextInt(getWidth());
+                break;
+            case 3:
+                x = 0;
+                y = rand.nextInt(getHeight());
+                break;
         }
         spawnEnemiesRandomLocation result = new spawnEnemiesRandomLocation(x, y);
         return result;
@@ -122,12 +129,20 @@ public class Game extends Canvas {
 
     @Override
     public void paint(Graphics g) {
-        int canvasWidth = getWidth();
-        int canvasHeight = getHeight();
-        int spriteX = (canvasWidth - sprite.getWidth()) / 2;
-        int spriteY = (canvasHeight - sprite.getHeight()) / 2;
-        g.drawImage(sprite, spriteX, spriteY, null);
-        render(g);
+        if (!gameOver) {
+            player.draw(g, getWidth(), getHeight());
+            render(g);
+        } else {
+            drawGameOverScreen(g);
+        }
+    }
+    private void drawGameOverScreen(Graphics g) {
+        g.setColor(Color.RED);
+        g.setFont(new Font("Arial", Font.BOLD, 50));
+        String gameOverText = "GAME OVER";
+        int stringWidth = g.getFontMetrics().stringWidth(gameOverText);
+        int stringHeight = g.getFontMetrics().getAscent();
+        g.drawString(gameOverText, (getWidth() - stringWidth) / 2, (getHeight() + stringHeight) / 2);
     }
 
     private void render(Graphics g) {
@@ -138,7 +153,6 @@ public class Game extends Canvas {
         gs.updateProjectile();
         gs.drawProjectile(g);
     }
-
 
 
     private void drawLines(Graphics g) {

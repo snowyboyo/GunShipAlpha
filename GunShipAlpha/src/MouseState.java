@@ -9,7 +9,6 @@ class MouseState {
    private ArrayList<Point> dragPoints = new ArrayList<>();
    private Point2D originalDirection;
    private final double THRESHOLD_ANGLE = Math.toRadians(15);
-   private final long LINE_LIFETIME = 5000;
    public void handleMousePress(MouseEvent e){
        startPoint = e.getPoint();
        dragPoints.clear();
@@ -41,14 +40,19 @@ class MouseState {
             Projectile projectile = new Projectile(startPoint.x, startPoint.y, direction);
             Game.gs.addProjectile(projectile);
         } else {
-            if (startPoint != null) {
-                Game.gs.addLine(e, startPoint);
-                startPoint = null;
-                originalDirection = null;
-                game.repaint();
-            }
+            addLine(e, game);
         }
     }
+
+    private void addLine(MouseEvent e, Game game) {
+        if (startPoint != null) {
+            Game.gs.addLine(e, startPoint);
+            startPoint = null;
+            originalDirection = null;
+            game.repaint();
+        }
+    }
+
     public void drawLines(Graphics g) {
         for (int i = 0; i < dragPoints.size() - 1; i++) {
             g.drawLine(dragPoints.get(i).x, dragPoints.get(i).y, dragPoints.get(i + 1).x, dragPoints.get(i + 1).y);
@@ -70,9 +74,10 @@ class MouseState {
     }
 
     public double angleBetweenStartPointAndCurrentPoint(Point currentPoint) {
-       if(originalDirection == null) {
-           return 1;
-       }
+        if (originalDirection == null) {
+            throw new IllegalStateException("Original direction is not set.");
+        }
+
         Point2D currentDirection = new Point2D.Double(startPoint.x - currentPoint.x, startPoint.y - currentPoint.y);
         return angleBetween2Lines(originalDirection, currentDirection);
     }
@@ -88,9 +93,6 @@ class MouseState {
             result += 2 * Math.PI;
         }
         return Math.abs(result);
-    }
-    public boolean isExpired(long creationTime) {
-        return System.currentTimeMillis() - creationTime > LINE_LIFETIME;
     }
     public void drawLineIfNeeded(Graphics g, Component component) {
         if (startPoint != null) {
