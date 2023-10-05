@@ -1,41 +1,94 @@
 import java.awt.*;
+import java.awt.geom.Point2D;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 class Enemy {
-    private int x, y;
-    private final int targetX, targetY;
+    private Point location;
+    private Point target;
     private int health = 2;
+    private Timer firingTimer;
+
     public Enemy(int x, int y, int targetX, int targetY) {
-        this.x = x;
-        this.y = y;
-        this.targetX = targetX;
-        this.targetY = targetY;
+        this.location = new Point(x, y);
+        this.target = new Point(targetX, targetY);
+        scheduleFiring();
+    }
+    private void scheduleFiring() {
+        if (firingTimer != null) {
+            firingTimer.cancel();
+        }
+
+        firingTimer = new Timer();
+
+        TimerTask firingTask = new TimerTask() {
+            @Override
+            public void run() {
+
+                Projectile projectile = fireAtPlayer();
+                Game.gs.addProjectile(projectile);
+                scheduleFiring();
+            }
+        };
+        Random random = new Random();
+        long delay = 0 + random.nextInt(3000);
+        firingTimer.schedule(firingTask, delay);
+    }
+    public void moveTowardTarget() {
+        if (hasEnemyReachedTarget()) return;
+        if (location.x < target.x) location.x++;
+        if (location.x> target.x) location.x--;
+        if (location.y < target.y) location.y++;
+        if (location.y > target.y) location.y--;
     }
 
-    public void moveTowardTarget() {
-        if (x < targetX) x++;
-        if (x > targetX) x--;
-        if (y < targetY) y++;
-        if (y > targetY) y--;
+    private boolean hasEnemyReachedTarget() {
+        if(location.x == target.x && location.y == target.y ) {
+            health-=2;
+            Game.gs.removeEnemy();
+            return true;
+        }
+        return false;
     }
+
     void removeHealth() {
         health--;
+        if (isDead()) {
+            firingTimer.cancel();
+        }
     }
     public boolean isCollidingWithProjectile(Projectile projectile) {
-        Rectangle enemyBounds = new Rectangle(x, y, EnemySprite.width(), EnemySprite.height());
+        Rectangle enemyBounds = EnemySprite.getBounds(location.x, location.y);
         return projectile.isInsideEnemy(enemyBounds);
     }
     public void draw(Graphics g) {
-        g.drawImage(EnemySprite.sprite(), x, y, null);
+        EnemySprite.draw(g, location);
     }
     public boolean isDead() {
         return health <= 0;
     }
-    public boolean isIntersectingLine(LineLogic line) {
-        Rectangle enemyBounds = createBounds();
+    public boolean isIntersectingLine(Line line) {
+        Rectangle enemyBounds = EnemySprite.getBounds(location.x, location.y);
         return line.intersects(enemyBounds);
     }
-
-    private Rectangle createBounds() {
-        return new Rectangle(x, y, EnemySprite.width(), EnemySprite.height());
+    public Projectile fireAtPlayer() {
+        Point2D.Double directionVector = vectorBetween(location, target);
+        Point2D firePosition = EnemySprite.getFireOffset(location, target);
+        return new Projectile((int) firePosition.getX(), (int) firePosition.getY(),
+                directionVector);
     }
+
+    public Point2D.Double vectorBetween(Point from, Point to) {
+        double directionX = to.x - from.x;
+        double directionY = to.y - from.y;
+        double magnitude = Math.sqrt(directionX * directionX + directionY * directionY);
+        return new Point2D.Double(directionX / magnitude, directionY / magnitude);
+    }
+    public Rectangle getBounds() {
+        int width = 100;
+        int height = 100;
+        return new Rectangle(location.x, location.y, width, height);
+    }
+
 }
