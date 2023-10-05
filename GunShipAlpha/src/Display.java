@@ -10,7 +10,8 @@ public class Display {
     }
 
     public static void initializeGame(Game gameCanvas) {
-        gameCanvas.spawnBehemoths(10);
+        gameCanvas.spawnBehemoths(5);
+        gameCanvas.spawnTanks(5);
     }
 }
 

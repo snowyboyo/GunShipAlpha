@@ -21,7 +21,7 @@ private boolean gameOver = false;
             if (!player.isDead()) {
                 moveEnemies();
                 boolean playerHit = gs.handleProjectileCollisionAndMoveEnemies();
-                if (gs.checkEnemyPlayerCollisions(player, getWidth(), getHeight()) || playerHit) {
+                if (gs.checkBehemothPlayerCollisions(player, getWidth(), getHeight()) || playerHit||gs.checkTankPlayerCollisions(player, getWidth(), getHeight())) {
                     player.reduceHealth();
                 }
 
@@ -85,7 +85,8 @@ private boolean gameOver = false;
     }
 
     private void moveEnemies() {
-        gs.handleEnemyMovement();
+        gs.handleBehemothMovement();
+        gs.handleTankMovement();
         gs.removeExpiredProjectilesAndLines(getWidth(), getHeight());
     }
 
@@ -95,8 +96,18 @@ private boolean gameOver = false;
             int side = rand.nextInt(4);
             int x = 0, y = 0;
             Game.spawnEnemiesRandomLocation result = getSpawnEnemiesRandomLocation(side, y, x, rand);
-            Enemy enemy = new Enemy(result.x(), result.y(), getWidth() / 2, getHeight() / 2);
-            gs.addEnemy(enemy);
+            Behemoth behemoth = new Behemoth(result.x(), result.y(), getWidth() / 2, getHeight() / 2);
+            gs.addBehemoth(behemoth);
+        }
+    }
+    public void spawnTanks(int count) {
+        Random rand = new Random();
+        for (int i = 0; i < count; i++) {
+            int side = rand.nextInt(4);
+            int x = 0, y = 0;
+            Game.spawnEnemiesRandomLocation result = getSpawnEnemiesRandomLocation(side, y, x, rand);
+            Tank tank = new Tank(result.x(), result.y(), getWidth() / 2, getHeight() / 2); // Changed to Tank
+            gs.addTank(tank);
         }
     }
 
