@@ -32,7 +32,7 @@ class Behemoth {
             }
         };
         Random random = new Random();
-        long delay = 0 + random.nextInt(8000);
+        long delay = random.nextInt(8000);
         firingTimer.schedule(firingTask, delay);
     }
     public void moveTowardTarget() {
