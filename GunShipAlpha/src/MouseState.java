@@ -74,6 +74,7 @@ class MouseState {
     }
 
     public double angleBetweenStartPointAndCurrentPoint(Point currentPoint) {
+       initializeOriginalDirection();
         if (originalDirection == null) {
             throw new IllegalStateException("Original direction is not set.");
         }
