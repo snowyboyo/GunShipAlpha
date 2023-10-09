@@ -15,19 +15,20 @@ private boolean gameOver = false;
         startGameLoop();
         setupMouseListeners();
     }
+
     private void startGameLoop() {
         Timer gameLoop = new Timer(16, e -> {
-            if (player.isDead()) {
-                gameOver = true;
+            if (!player.isDead()) {
+                moveEnemies();
+                boolean playerHit = gs.handleProjectileCollisionAndMoveEnemies();
+                if (gs.checkEnemyPlayerCollisions(player, getWidth(), getHeight()) || playerHit) {
+                    player.reduceHealth();
+                }
+
                 repaint();
             } else {
-            moveEnemies();
-            boolean playerHit = gs.handleProjectileCollison();
-            if (gs.checkBehemothPlayerCollisions(player, getWidth(), getHeight())) {
-                player.reduceHealth();
-            }
-
-            repaint();
+                gameOver = true;
+                repaint();
             }
         });
         gameLoop.start();
@@ -84,70 +85,21 @@ private boolean gameOver = false;
     }
 
     private void moveEnemies() {
-        gs.update(player);
+        gs.handleEnemyMovement();
         gs.removeExpiredProjectilesAndLines(getWidth(), getHeight());
-
     }
 
-    public void failedToSpawnEnemies(int count) {
-        for (int i = 0; i < count; i++) {
-            if (!tryToSpawnEnemy()) {
-                System.out.println("Could not find an unoccupied space after max attempts. Not spawning an enemy.");
-            }
-        }
-    }
-
-    private boolean tryToSpawnEnemy() {
+    public void spawnBehemoths(int count) {
         Random rand = new Random();
-        boolean isTank = rand.nextBoolean();
-        int maxAttempts = 10;
-        int attempts = 0;
-
-        while (attempts < maxAttempts) {
-            Game.spawnEnemiesRandomLocation result = getRandomLocation(rand);
-
-            if (canSpawnEnemyAt(result.x(), result.y())) {
-                spawnEnemyOfTypeAtLocation(isTank, result.x(), result.y());
-                return true;
-            } else {
-                System.out.println("Space occupied, trying another location.");
-                attempts++;
-            }
-        }
-
-        return false;
-    }
-
-    private Game.spawnEnemiesRandomLocation getRandomLocation(Random rand) {
-        int side = rand.nextInt(4);
-        int x = 0, y = 0;
-        return getSpawnEnemiesRandomLocation(side, y, x, rand);
-    }
-
-    private void spawnEnemyOfTypeAtLocation(boolean isTank, int x, int y) {
-        if (isTank) {
-            spawnTankAt(x, y);
-        } else {
-            spawnEnemyAt(x, y);
+        for (int i = 0; i < count; i++) {
+            int side = rand.nextInt(4);
+            int x = 0, y = 0;
+            Game.spawnEnemiesRandomLocation result = getSpawnEnemiesRandomLocation(side, y, x, rand);
+            Enemy enemy = new Enemy(result.x(), result.y(), getWidth() / 2, getHeight() / 2);
+            gs.addEnemy(enemy);
         }
     }
 
-    private boolean canSpawnEnemyAt(int x, int y) {
-        int width = 100;
-        int height = 100;
-        Rectangle newEnemyBounds = new Rectangle(x, y, width, height);
-        return !gs.isSpaceOccupied(newEnemyBounds);
-    }
-
-    private void spawnTankAt(int x, int y) {
-        Tank tank = new Tank(x, y, getWidth() / 2, getHeight() / 2);
-        gs.addEnemy(tank);
-    }
-
-    private void spawnEnemyAt(int x, int y) {
-        Enemy enemy = new Enemy(x, y, getWidth() / 2, getHeight() / 2);
-        gs.addEnemy(enemy);
-    }
 
     private spawnEnemiesRandomLocation getSpawnEnemiesRandomLocation(int side, int y, int x, Random rand) {
         switch (side) {
@@ -177,11 +129,11 @@ private boolean gameOver = false;
 
     @Override
     public void paint(Graphics g) {
-        if (gameOver) {
-            drawGameOverScreen(g);
-        } else {
+        if (!gameOver) {
             player.draw(g, getWidth(), getHeight());
             render(g);
+        } else {
+            drawGameOverScreen(g);
         }
     }
     private void drawGameOverScreen(Graphics g) {

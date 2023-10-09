@@ -10,7 +10,7 @@ public class Display {
     }
 
     public static void initializeGame(Game gameCanvas) {
-        gameCanvas.failedToSpawnEnemies(10);
+        gameCanvas.spawnBehemoths(10);
     }
 }
 

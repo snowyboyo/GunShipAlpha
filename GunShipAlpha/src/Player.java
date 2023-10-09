@@ -3,6 +3,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.*;
 
 public class Player {
     private int health = 10;
@@ -19,7 +20,9 @@ public class Player {
     }
 
     public void reduceHealth(){
+        System.out.println("reducing health");
         health--;
+        isDead();
     }
     public boolean isDead(){
         boolean dead = health <= 0;
@@ -39,7 +42,4 @@ public class Player {
         return playerBounds.intersects(enemyBounds);
     }
 
-    public int getHealth() {
-        return health;
-    }
 }
