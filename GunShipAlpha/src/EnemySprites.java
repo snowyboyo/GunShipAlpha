@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class EnemySprites {
 
-    private static BufferedImage SPRITE;
+    private BufferedImage SPRITE;
 
     public EnemySprites(String spritePath) {
         this.SPRITE = loadSprite(spritePath);
@@ -21,11 +21,11 @@ public class EnemySprites {
         }
     }
 
-    public static Rectangle getBounds(int x, int y) {
+    public Rectangle getBounds(int x, int y) {
         return new Rectangle(x, y, SPRITE.getWidth(), SPRITE.getHeight());
     }
 
-    public static Point2D getFireOffset(Point location, Point target) {
+    public Point2D getFireOffset(Point location, Point target) {
         double directionX = target.x - location.x;
         double directionY = target.y - location.y;
         double magnitude = Math.sqrt(directionX * directionX + directionY * directionY);
@@ -36,13 +36,14 @@ public class EnemySprites {
         return new Point2D.Double(location.x + offsetX, location.y + offsetY);
     }
 
-    public static void draw(Graphics g, Point location) {
+    public void draw(Graphics g, Point location) {
         g.drawImage(SPRITE, location.x, location.y, null);
     }
 }
  class TankSprite extends EnemySprites {
 
      public TankSprite() {
-         super("src/Images/Tank.png");
+         super("GunShipAlpha/src/Images/Tank.png");
      }
+
 }

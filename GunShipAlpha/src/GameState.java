@@ -23,7 +23,7 @@ class GameState {
             if (enemy instanceof Tank) {
                 Tank tank = (Tank) enemy;
                 if (explosion.shouldExplode(tank, lines, projectiles, player, 800, 800)) {
-                    tank.explode();
+                    tank.explode(lines, projectiles, player, 800, 800);;
                     removeEnemy();
                 }
             }

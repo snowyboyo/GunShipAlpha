@@ -26,11 +26,18 @@ private boolean gameOver = false;
             if (gs.checkBehemothPlayerCollisions(player, getWidth(), getHeight())) {
                 player.reduceHealth();
             }
-
+            updateExplosions();
             repaint();
             }
         });
         gameLoop.start();
+    }
+    private void updateExplosions() {
+        gs.forEachEnemy(enemy -> {
+            if (enemy instanceof Tank) {
+                ((Tank) enemy).updateExplosionParticles();
+            }
+        });
     }
 
 
@@ -92,7 +99,6 @@ private boolean gameOver = false;
     public void failedToSpawnEnemies(int count) {
         for (int i = 0; i < count; i++) {
             if (!tryToSpawnEnemy()) {
-                System.out.println("Could not find an unoccupied space after max attempts. Not spawning an enemy.");
             }
         }
     }
@@ -100,6 +106,7 @@ private boolean gameOver = false;
     private boolean tryToSpawnEnemy() {
         Random rand = new Random();
         boolean isTank = rand.nextBoolean();
+        System.out.println(isTank);
         int maxAttempts = 10;
         int attempts = 0;
 
@@ -110,7 +117,6 @@ private boolean gameOver = false;
                 spawnEnemyOfTypeAtLocation(isTank, result.x(), result.y());
                 return true;
             } else {
-                System.out.println("Space occupied, trying another location.");
                 attempts++;
             }
         }
@@ -177,12 +183,18 @@ private boolean gameOver = false;
 
     @Override
     public void paint(Graphics g) {
+
         if (gameOver) {
             drawGameOverScreen(g);
         } else {
             player.draw(g, getWidth(), getHeight());
             render(g);
         }
+        gs.forEachEnemy(enemy -> {
+            if (enemy instanceof Tank) {
+                ((Tank) enemy).drawExplosionParticles(g);
+            }
+        });
     }
     private void drawGameOverScreen(Graphics g) {
         g.setColor(Color.RED);
