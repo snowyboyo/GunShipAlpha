@@ -108,17 +108,13 @@ class Tank extends Enemy {
         this.sprites = new TankSprite();
         this.health = 1;
     }
-    void explode(ArrayList<Line> lines, CopyOnWriteArrayList<Projectile> projectiles, Player player, int canvasWidth, int canvasHeight) {
+    public ArrayList<ExplosionParticle> explode() {
         System.out.println("BOOM!");
-        createExplosionParticles();
+        ArrayList<ExplosionParticle> particles = createExplosionParticles();
+        health = 0;
         Rectangle explosionArea = createExplosionArea();
-        Rectangle playerBounds = new Rectangle(350, 350, 100, 100);
-        if (explosionArea.intersects(playerBounds)){
-            player.takeExplosionDamage();
-        }
-        projectiles.removeIf(projectile -> projectile.isIntersected(explosionArea));
-        lines.removeIf(line -> line.intersects(explosionArea));
-        removeHealth();
+
+        return particles;
     }
 
     private Rectangle createExplosionArea() {
@@ -152,28 +148,13 @@ class Tank extends Enemy {
     protected void scheduleFiring() {
         //preventing tanks from firing projectiles by overriding it with empty method
     }
-    private void createExplosionParticles() {
+    private ArrayList<ExplosionParticle> createExplosionParticles() {
+        ArrayList<ExplosionParticle> particles = new ArrayList<>();
         for (int i = 0; i < 50; i++) {
             int velocityX = random.nextInt(10) - 5;
             int velocityY = random.nextInt(10) - 5;
-            System.out.println("Creating particle " + i + " with velocity (" + velocityX + "," + velocityY + ")");
-            explosionParticles.add(new ExplosionParticle(new Point(location.x, location.y), new Point(velocityX, velocityY)));
+            particles.add(new ExplosionParticle(new Point(location.x, location.y), new Point(velocityX, velocityY)));
         }
-        System.out.println("Explosion particles created: " + explosionParticles.size());
-    }
-    public void updateExplosionParticles() {
-        for (int i = 0; i < explosionParticles.size(); i++) {
-            explosionParticles.get(i).update();
-        }
-    }
-
-    public void drawExplosionParticles(Graphics g) {
-        System.out.println(explosionParticles.size());
-        for (int i = 0; i < explosionParticles.size(); i++) {
-            ExplosionParticle p = explosionParticles.get(i);
-            if (p != null) {
-                p.draw(g);
-            }
-        }
+        return particles;
     }
 }

@@ -77,24 +77,6 @@ public class GameCanvas extends Canvas {
         lines.removeIf(Line::isExpired);
     }
 
-    public void spawnEnemies(int count) {
-        Random rand = new Random();
-        for (int i = 0; i < count; i++) {
-            int side = rand.nextInt(4);
-            int x = 0, y = 0;
-
-            switch (side) {
-                case 0: y = 0; x = rand.nextInt(getWidth()); break;
-                case 1: x = getWidth(); y = rand.nextInt(getHeight()); break;
-                case 2: y = getHeight(); x = rand.nextInt(getWidth()); break;
-                case 3: x = 0; y = rand.nextInt(getHeight()); break;
-            }
-
-            Enemy enemy = new Enemy(x, y, getWidth() / 2, getHeight() / 2);
-            enemies.add(enemy);
-        }
-    }
-
     @Override
     public void paint(Graphics g) {
         g.setColor(Color.LIGHT_GRAY);

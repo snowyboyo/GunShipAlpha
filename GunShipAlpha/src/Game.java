@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.Timer;
 import java.awt.event.MouseAdapter;
@@ -10,6 +11,8 @@ public class Game extends Canvas {
     static MouseState ms = new MouseState();
     private Player player = new Player();
 private boolean gameOver = false;
+    private int waveNumber = 1;
+    private ArrayList<ExplosionParticle> ongoingExplosions = new ArrayList<>();
 
     public Game() {
         startGameLoop();
@@ -19,25 +22,29 @@ private boolean gameOver = false;
         Timer gameLoop = new Timer(16, e -> {
             if (player.isDead()) {
                 gameOver = true;
-                repaint();
             } else {
-            moveEnemies();
-            boolean playerHit = gs.handleProjectileCollison();
-            if (gs.checkBehemothPlayerCollisions(player, getWidth(), getHeight())) {
-                player.reduceHealth();
+                moveEnemies();
+                gs.handleProjectileCollison();
+                gs.checkBehemothPlayerCollisions(player, getWidth(), getHeight());
+                updateExplosions();
+                gs.removeDeadEnemies();
+                if (gs.areAllEnemiesDefeated() && !gameOver) {
+                    waveNumber++;
+                    int numberOfEnemies = 5 * waveNumber;
+                    spawnEnemies(numberOfEnemies);
+                }
             }
-            updateExplosions();
             repaint();
-            }
         });
         gameLoop.start();
     }
     private void updateExplosions() {
         gs.forEachEnemy(enemy -> {
-            if (enemy instanceof Tank) {
-                ((Tank) enemy).updateExplosionParticles();
+            if (enemy instanceof Tank && enemy.isDead()) {
+                ongoingExplosions.addAll(((Tank) enemy).explode());
             }
         });
+        ongoingExplosions.forEach(ExplosionParticle::update);
     }
 
 
@@ -96,9 +103,16 @@ private boolean gameOver = false;
 
     }
 
-    public void failedToSpawnEnemies(int count) {
+    public void spawnNextWave() {
+        waveNumber++;
+        int enemiesToSpawn = waveNumber * 5;  // Adjust this formula as needed
+        spawnEnemies(enemiesToSpawn);
+    }
+
+    void spawnEnemies(int count) {
         for (int i = 0; i < count; i++) {
             if (!tryToSpawnEnemy()) {
+                System.out.println("Failed to spawn enemy #" + (i+1));
             }
         }
     }
@@ -190,11 +204,9 @@ private boolean gameOver = false;
             player.draw(g, getWidth(), getHeight());
             render(g);
         }
-        gs.forEachEnemy(enemy -> {
-            if (enemy instanceof Tank) {
-                ((Tank) enemy).drawExplosionParticles(g);
-            }
-        });
+        for (ExplosionParticle explosion : ongoingExplosions) {
+            explosion.draw(g);
+        }
     }
     private void drawGameOverScreen(Graphics g) {
         g.setColor(Color.RED);

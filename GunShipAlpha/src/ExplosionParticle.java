@@ -5,27 +5,20 @@ import java.io.File;
 import java.io.IOException;
 
 public class ExplosionParticle {
-    private BufferedImage spriteImage;
     private Point location;
     private Point velocity;
 
     public ExplosionParticle(Point location, Point velocity) {
         this.location = location;
         this.velocity = velocity;
-        try {
-            spriteImage = ImageIO.read(new File("GunShipAlpha/src/Images/Drawing.png"));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public void update() {
         location.translate(velocity.x, velocity.y);
     }
 
-    public void draw(Graphics g) {
-        System.out.println("Drawing Explosion");
-            g.drawImage(spriteImage, location.x, location.y, null);
+    public void draw(Graphics g) {;
+        g.setColor(Color.RED);
+        g.fillRect(location.x, location.y, 20, 20);
     }
 }

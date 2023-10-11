@@ -12,22 +12,28 @@ class GameState {
     private CopyOnWriteArrayList<Enemy> enemies = new CopyOnWriteArrayList<>();
     private ArrayList<Line> lines = new ArrayList<>();
     private CopyOnWriteArrayList<Projectile> projectiles = new CopyOnWriteArrayList<>();
-
+    public boolean areAllEnemiesDefeated() {
+        return enemies.isEmpty();
+    }
 
     public void update(Player player) {
         forEachEnemy(enemy -> {
             if (!isBehemothBlocked(enemy)) {
                 enemy.moveTowardTarget();
             }
-
             if (enemy instanceof Tank) {
                 Tank tank = (Tank) enemy;
+                if (tank.isDead()) {
+                    return;
+                }
                 if (explosion.shouldExplode(tank, lines, projectiles, player, 800, 800)) {
-                    tank.explode(lines, projectiles, player, 800, 800);;
-                    removeEnemy();
+                    tank.explode();
                 }
             }
         });
+    }
+    public void removeDeadEnemies() {
+        enemies.removeIf(Enemy::isDead);
     }
 
 
