@@ -5,11 +5,9 @@ public class TankExplosion {
 
     public boolean shouldExplode(Tank tank, ArrayList<Line> lines,
                                  CopyOnWriteArrayList<Projectile> projectiles,
-                                 Player player,
-                                 int canvasWidth,
-                                 int canvasHeight) {
+                                 Player player) {
         return tank.isIntersectingAnyLine(lines) ||
                 tank.isCollidingWithAnyProjectile(projectiles) ||
-                player.isTouchedByEnemy(tank, canvasWidth, canvasHeight);
+                player.isTouchedByEnemy(tank);
     }
 }

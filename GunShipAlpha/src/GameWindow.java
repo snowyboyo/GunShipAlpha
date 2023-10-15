@@ -12,9 +12,6 @@ public class GameWindow {
 
         gameCanvas = new Game();
         frame.add(gameCanvas);
-    }
-
-    public void display() {
         frame.setVisible(true);
     }
 

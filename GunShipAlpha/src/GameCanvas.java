@@ -87,8 +87,8 @@ public class GameCanvas extends Canvas {
         int circleY = (canvasHeight - circleDiameter) / 2;
         g.drawOval(circleX, circleY, circleDiameter, circleDiameter);
 
-        int spriteX = (canvasWidth - sprite.getWidth()) / 2;
-        int spriteY = (canvasHeight - sprite.getHeight()) / 2;
+        int spriteX = (800 - sprite.getWidth()) / 2;
+        int spriteY = (800 - sprite.getHeight()) / 2;
         g.drawImage(sprite, spriteX, spriteY, null);
 
         for (Enemy enemy : enemies) {

@@ -21,7 +21,7 @@ public class Player {
     public void reduceHealth(){
         health--;
     }
-    public boolean isDead(){
+    public boolean isDead() {
         boolean dead = health <= 0;
         return dead;
     }
@@ -30,16 +30,23 @@ public class Player {
         int spriteY = (canvasHeight - sprite.getHeight()) / 2;
         g.drawImage(sprite, spriteX, spriteY, null);
     }
-    public boolean isTouchedByEnemy(Enemy enemy, int canvasWidth, int canvasHeight) {
-        Rectangle playerBounds = new Rectangle((canvasWidth - sprite.getWidth()) / 2,
-                (canvasHeight - sprite.getHeight()) / 2,
+    public boolean isTouchedByEnemy(Enemy enemy) {
+        Rectangle playerBounds = new Rectangle((800 - sprite.getWidth()) / 2,
+                (800 - sprite.getHeight()) / 2,
                 sprite.getWidth(),
                 sprite.getHeight());
         Rectangle enemyBounds = enemy.getBounds();
         return playerBounds.intersects(enemyBounds);
     }
+    public void checkAndHandleExplosion(Point explosionCenter, int radius) {
+        if (isWithinRange(explosionCenter, radius)) {
+            health -= 10;
+        }
+    }
 
-    public void takeExplosionDamage() {
-        health -= 5;
+    public boolean isWithinRange(Point explosionCenter, int radius) {
+        Point playerLocation = new Point(350,350);
+        double distance = playerLocation.distance(explosionCenter);
+        return distance <= radius;
     }
 }

@@ -41,4 +41,7 @@ class Projectile {
         Rectangle projectileBounds = new Rectangle(location.x, location.y, 10,10 );
         return projectileBounds.intersects(playerBounds);
     }
+    public boolean isCollidingWithLine(Line line) {
+        return line.isIntersectingWithPoint(this.location.x, this.location.y);
+    }
 }

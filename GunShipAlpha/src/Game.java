@@ -6,13 +6,18 @@ import javax.swing.Timer;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public class Game extends Canvas {
+public class Game extends Canvas implements Mediator {
     static GameState gs = new GameState();
     static MouseState ms = new MouseState();
     private Player player = new Player();
 private boolean gameOver = false;
     private int waveNumber = 1;
+    private int explosionCounter = 0;
     private ArrayList<ExplosionParticle> ongoingExplosions = new ArrayList<>();
+    @Override
+    public void handleExplosion(Point location, int explosionSize) {
+            gs.handleExplosion(location, explosionSize, player);
+    }
 
     public Game() {
         startGameLoop();
@@ -24,14 +29,14 @@ private boolean gameOver = false;
                 gameOver = true;
             } else {
                 moveEnemies();
-                gs.handleProjectileCollison();
-                gs.checkBehemothPlayerCollisions(player, getWidth(), getHeight());
+                gs.handleProjectileCollison(player);
+                gs.checkBehemothPlayerCollisions(player);
                 updateExplosions();
                 gs.removeDeadEnemies();
                 if (gs.areAllEnemiesDefeated() && !gameOver) {
-                    waveNumber++;
-                    int numberOfEnemies = 5 * waveNumber;
+                    int numberOfEnemies = 3 * waveNumber;
                     spawnEnemies(numberOfEnemies);
+                    waveNumber++;
                 }
             }
             repaint();
@@ -160,7 +165,7 @@ private boolean gameOver = false;
     }
 
     private void spawnTankAt(int x, int y) {
-        Tank tank = new Tank(x, y, getWidth() / 2, getHeight() / 2);
+        Tank tank = new Tank(x, y, getWidth() / 2, getHeight() / 2,this);
         gs.addEnemy(tank);
     }
 

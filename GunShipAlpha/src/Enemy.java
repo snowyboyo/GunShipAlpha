@@ -100,17 +100,21 @@ class Enemy {
 
 }
 class Tank extends Enemy {
-    private ArrayList<ExplosionParticle> explosionParticles = new ArrayList<>();
+    private Mediator M;
     private Random random = new Random();
 
-    public Tank(int x, int y, int targetX, int targetY) {
+
+    public Tank(int x, int y, int targetX, int targetY, Mediator M) {
         super(x, y, targetX, targetY);
         this.sprites = new TankSprite();
         this.health = 1;
+        this.M = M;
     }
     public ArrayList<ExplosionParticle> explode() {
         System.out.println("BOOM!");
         ArrayList<ExplosionParticle> particles = createExplosionParticles();
+        int explosionSize = 200;
+        M.handleExplosion(location, explosionSize);
         health = 0;
         Rectangle explosionArea = createExplosionArea();
 
@@ -118,7 +122,7 @@ class Tank extends Enemy {
     }
 
     private Rectangle createExplosionArea() {
-        int explosionSize = 300;
+        int explosionSize = 200;
         Rectangle explosionArea = new Rectangle(
                 location.x - explosionSize / 2,
                 location.y - explosionSize / 2,

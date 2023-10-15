@@ -26,7 +26,7 @@ class GameState {
                 if (tank.isDead()) {
                     return;
                 }
-                if (explosion.shouldExplode(tank, lines, projectiles, player, 800, 800)) {
+                if (explosion.shouldExplode(tank, lines, projectiles, player)) {
                     tank.explode();
                 }
             }
@@ -47,19 +47,29 @@ class GameState {
         return false;
     }
 
-    boolean handleProjectileCollison() {
+    boolean handleProjectileCollison(Player player) {
         boolean playerHit = false;
         ArrayList<Projectile> projectilesToRemove = new ArrayList<>();
         for (Projectile projectile : projectiles) {
+            for (Line line : lines) {
+                if (projectile.isCollidingWithLine(line)) {
+                    projectilesToRemove.add(projectile);
+                    break;
+                }
+            }
+            if (projectilesToRemove.contains(projectile)) continue;
+
             if (doesProjectileHitAnyBehemoths(projectile)) {
                 handleHitForProjectile(projectile, projectilesToRemove);
             }
+
             if (projectile.isCollidingWithPlayer()) {
                 playerHit = true;
-                System.out.println(playerHit);
+                player.reduceHealth();
                 projectilesToRemove.add(projectile);
             }
         }
+
         projectiles.removeAll(projectilesToRemove);
         return playerHit;
     }
@@ -138,9 +148,13 @@ class GameState {
             projectile.update();
         }
     }
-    public boolean checkBehemothPlayerCollisions(Player player, int canvasWidth, int canvasHeight) {
+    public boolean checkBehemothPlayerCollisions(Player player) {
         for (Enemy enemy : enemies) {
-            if (player.isTouchedByEnemy(enemy, canvasWidth, canvasHeight)) {
+            if (player.isTouchedByEnemy(enemy)) {
+                player.reduceHealth();
+                enemy.removeHealth();
+                enemy.removeHealth();
+
                 return true;
             }
         }
@@ -160,5 +174,10 @@ class GameState {
             }
         }
         return false;
+    }
+    public void handleExplosion(Point center, int radius,Player player) {
+        player.checkAndHandleExplosion(center, radius);
+        lines.removeIf(line -> line.isWithinExplosionRange(center, radius));
+
     }
 }

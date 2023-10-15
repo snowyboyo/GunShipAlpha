@@ -14,7 +14,7 @@ class GameStateTest {
         Player player = new Player();
         Enemy enemy = new Enemy(350, 350, 50, 50);
         gameState.addEnemy(enemy);
-        boolean isCollision = gameState.checkBehemothPlayerCollisions(player, 800, 800);
+        boolean isCollision = gameState.checkBehemothPlayerCollisions(player);
         assertTrue(isCollision);
     }
     @Test
@@ -25,7 +25,7 @@ class GameStateTest {
         //placing the enemy to the left of the player
         gameState.addEnemy(enemy);
         enemy.moveTowardTarget();
-        boolean isCollision = gameState.checkBehemothPlayerCollisions(player, 800, 800);
+        boolean isCollision = gameState.checkBehemothPlayerCollisions(player);
         assertTrue(isCollision);
     }
     @Test
@@ -36,7 +36,7 @@ class GameStateTest {
         //placing the enemy to the right of the player
         gameState.addEnemy(enemy);
         enemy.moveTowardTarget();
-        boolean isCollision = gameState.checkBehemothPlayerCollisions(player, 800, 800);
+        boolean isCollision = gameState.checkBehemothPlayerCollisions(player);
         assertTrue(isCollision);
     }
     @Test
@@ -47,7 +47,7 @@ class GameStateTest {
         //placing the enemy above the player
         gameState.addEnemy(enemy);
         enemy.moveTowardTarget();
-        boolean isCollision = gameState.checkBehemothPlayerCollisions(player, 800, 800);
+        boolean isCollision = gameState.checkBehemothPlayerCollisions(player);
         assertTrue(isCollision);
     }
     @Test
@@ -58,7 +58,7 @@ class GameStateTest {
         //placing the enemy below the player
         gameState.addEnemy(enemy);
         enemy.moveTowardTarget();
-        boolean isCollision = gameState.checkBehemothPlayerCollisions(player, 800, 800);
+        boolean isCollision = gameState.checkBehemothPlayerCollisions(player);
         assertTrue(isCollision);
     }
     @Test
@@ -68,8 +68,40 @@ class GameStateTest {
         Enemy enemy = new Enemy(350, 350, 50, 50);
         //350,350 = one pixel away from the player
         gameState.addEnemy(enemy);
-        boolean isCollision = gameState.checkBehemothPlayerCollisions(player, 800, 800);
+        boolean isCollision = gameState.checkBehemothPlayerCollisions(player);
         assertFalse(isCollision);
+    }
+    @Test
+    void testExplosionPlayerCollisionToTheRight() {
+        Player player = new Player();
+        Point center = new Point(525,400);
+        int radius= 200;
+        boolean isCollision = player.isWithinRange(center,radius);
+        assertTrue(isCollision);
+    }
+    @Test
+    void testExplosionPlayerCollisionToTheLeft() {
+        Player player = new Player();
+        Point center = new Point(175,400);
+        int radius= 200;
+        boolean isCollision = player.isWithinRange(center,radius);
+        assertTrue(isCollision);
+    }
+    @Test
+    void testExplosionPlayerCollisionAbove() {
+        Player player = new Player();
+        Point center = new Point(400,175);
+        int radius= 200;
+        boolean isCollision = player.isWithinRange(center,radius);
+        assertTrue(isCollision);
+    }
+    @Test
+    void testExplosionPlayerCollisionBelow() {
+        Player player = new Player();
+        Point center = new Point(400,525);
+        int radius= 200;
+        boolean isCollision = player.isWithinRange(center,radius);
+        assertTrue(isCollision);
     }
     @Test
     void testEnemyProjectileCollisionToTheRight() {
