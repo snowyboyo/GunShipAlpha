@@ -16,7 +16,7 @@ class Enemy {
     public Enemy(int x, int y, int targetX, int targetY) {
         this.location = new Point(x, y);
         this.target = new Point(targetX, targetY);
-        this.sprites = new EnemySprites("GunShipAlpha/src/Images/Behemoth.png");
+        this.sprites = new EnemySprites("/Images/Behemoth.png");
         scheduleFiring();
     }
      void scheduleFiring() {

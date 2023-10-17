@@ -2,6 +2,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 import javax.imageio.ImageIO;
 
 public class Player {
@@ -12,8 +13,8 @@ public class Player {
     }
     void loadSprite() {
         try {
-            sprite = ImageIO.read(new File("GunShipAlpha/src/Images/GunShip.png"));
-        } catch (IOException e) {
+            sprite = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/Images/GunShip.png")));
+        } catch (IOException | IllegalArgumentException e) {
             throw new RuntimeException("Failed to load sprite", e);
         }
     }

@@ -4,6 +4,7 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 public class EnemySprites {
 
@@ -15,7 +16,7 @@ public class EnemySprites {
 
     static BufferedImage loadSprite(String path) {
         try {
-            return ImageIO.read(new File(path));
+            return ImageIO.read(Objects.requireNonNull(EnemySprites.class.getResourceAsStream(path)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -43,7 +44,7 @@ public class EnemySprites {
  class TankSprite extends EnemySprites {
 
      public TankSprite() {
-         super("GunShipAlpha/src/Images/Tank.png");
+         super("/Images/Tank.png");
      }
 
 }

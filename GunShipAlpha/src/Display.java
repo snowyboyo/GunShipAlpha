@@ -1,5 +1,4 @@
 import javax.swing.*;
-import java.awt.*;
 
 public class Display {
     public static final int WIDTH = 800;
