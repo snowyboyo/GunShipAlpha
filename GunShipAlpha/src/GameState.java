@@ -21,8 +21,8 @@ class GameState {
             if (!isBehemothBlocked(enemy)) {
                 enemy.moveTowardTarget();
             }
-            if (enemy instanceof Tank) {
-                Tank tank = (Tank) enemy;
+            if (enemy instanceof Mine) {
+                Mine tank = (Mine) enemy;
                 if (tank.isDead()) {
                     return;
                 }
@@ -88,6 +88,7 @@ class GameState {
             if (enemy.isCollidingWithProjectile(projectile)) {
                 enemy.removeHealth();
                 projectilesToRemove.add(projectile);
+                Game.addPlayerScore();
                 return;
             }
         }

@@ -3,7 +3,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TankExplosion {
 
-    public boolean shouldExplode(Tank tank, ArrayList<Line> lines,
+    public boolean shouldExplode(Mine tank, ArrayList<Line> lines,
                                  CopyOnWriteArrayList<Projectile> projectiles,
                                  Player player) {
         return tank.isIntersectingAnyLine(lines) ||

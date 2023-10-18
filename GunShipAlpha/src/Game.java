@@ -14,6 +14,7 @@ private boolean gameOver = false;
     private int waveNumber = 1;
     private int explosionCounter = 0;
     private ArrayList<ExplosionParticle> ongoingExplosions = new ArrayList<>();
+    private static int score = 0;
     @Override
     public void handleExplosion(Point location, int explosionSize) {
             gs.handleExplosion(location, explosionSize, player);
@@ -36,6 +37,9 @@ private boolean gameOver = false;
                 if (gs.areAllEnemiesDefeated() && !gameOver) {
                     int numberOfEnemies = 3 * waveNumber;
                     spawnEnemies(numberOfEnemies);
+                    if(waveNumber > 1) {
+                        score += 1000;
+                    }
                     waveNumber++;
                 }
             }
@@ -45,8 +49,8 @@ private boolean gameOver = false;
     }
     private void updateExplosions() {
         gs.forEachEnemy(enemy -> {
-            if (enemy instanceof Tank && enemy.isDead()) {
-                ongoingExplosions.addAll(((Tank) enemy).explode());
+            if (enemy instanceof Mine && enemy.isDead()) {
+                ongoingExplosions.addAll(((Mine) enemy).explode());
             }
         });
         ongoingExplosions.forEach(ExplosionParticle::update);
@@ -108,12 +112,6 @@ private boolean gameOver = false;
 
     }
 
-    public void spawnNextWave() {
-        waveNumber++;
-        int enemiesToSpawn = waveNumber * 5;  // Adjust this formula as needed
-        spawnEnemies(enemiesToSpawn);
-    }
-
     void spawnEnemies(int count) {
         for (int i = 0; i < count; i++) {
             if (!tryToSpawnEnemy()) {
@@ -124,8 +122,7 @@ private boolean gameOver = false;
 
     private boolean tryToSpawnEnemy() {
         Random rand = new Random();
-        boolean isTank = rand.nextBoolean();
-        System.out.println(isTank);
+        int enemyType = rand.nextInt(5);
         int maxAttempts = 10;
         int attempts = 0;
 
@@ -133,7 +130,7 @@ private boolean gameOver = false;
             Game.spawnEnemiesRandomLocation result = getRandomLocation(rand);
 
             if (canSpawnEnemyAt(result.x(), result.y())) {
-                spawnEnemyOfTypeAtLocation(isTank, result.x(), result.y());
+                spawnEnemyOfTypeAtLocation(enemyType, result.x(), result.y());
                 return true;
             } else {
                 attempts++;
@@ -149,11 +146,17 @@ private boolean gameOver = false;
         return getSpawnEnemiesRandomLocation(side, y, x, rand);
     }
 
-    private void spawnEnemyOfTypeAtLocation(boolean isTank, int x, int y) {
-        if (isTank) {
-            spawnTankAt(x, y);
-        } else {
+    private void spawnEnemyOfTypeAtLocation(int enemyType, int x, int y) {
+        if (enemyType == 1) {
+            spawnMineAt(x, y);
+        } else if (enemyType == 2){
             spawnEnemyAt(x, y);
+        }
+        else if (enemyType == 3){
+            spawnGinkerAt(x,y);
+        }
+        else{
+            spawnBehemothAt(x,y);
         }
     }
 
@@ -164,9 +167,17 @@ private boolean gameOver = false;
         return !gs.isSpaceOccupied(newEnemyBounds);
     }
 
-    private void spawnTankAt(int x, int y) {
-        Tank tank = new Tank(x, y, getWidth() / 2, getHeight() / 2,this);
-        gs.addEnemy(tank);
+    private void spawnMineAt(int x, int y) {
+        Mine mine = new Mine(x, y, getWidth() / 2, getHeight() / 2,this);
+        gs.addEnemy(mine);
+    }
+    private void spawnGinkerAt(int x, int y) {
+        Ginker ginker = new Ginker(x, y, getWidth() / 2, getHeight() / 2);
+        gs.addEnemy(ginker);
+    }
+    private void spawnBehemothAt(int x, int y) {
+        Behemoth behemoth = new Behemoth(x, y, getWidth() / 2, getHeight() / 2);
+        gs.addEnemy(behemoth);
     }
 
     private void spawnEnemyAt(int x, int y) {
@@ -212,6 +223,18 @@ private boolean gameOver = false;
         for (ExplosionParticle explosion : ongoingExplosions) {
             explosion.draw(g);
         }
+        drawScore(g);
+        drawWaveNumber(g);
+    }
+    private void drawScore(Graphics g) {
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", Font.BOLD, 24));
+        g.drawString("Score: " + score, 10, 24);
+    }
+    private void drawWaveNumber(Graphics g) {
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", Font.BOLD, 24));
+        g.drawString("Wave Number: " + waveNumber, 600, 24);
     }
     private void drawGameOverScreen(Graphics g) {
         g.setColor(Color.RED);
@@ -242,6 +265,9 @@ private boolean gameOver = false;
 
     private void drawSegmentedLine(Graphics g) {
         ms.drawLines(g);
+    }
+    static void addPlayerScore(){
+        score += 350;
     }
 
 

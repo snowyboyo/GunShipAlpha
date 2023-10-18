@@ -2,7 +2,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -41,10 +40,22 @@ public class EnemySprites {
         g.drawImage(SPRITE, location.x, location.y, null);
     }
 }
- class TankSprite extends EnemySprites {
+ class MineSprite extends EnemySprites {
 
-     public TankSprite() {
-         super("/Images/Tank.png");
+     public MineSprite() {
+         super("/Images/Mine.png");
      }
 
+}
+class GinkerSprite extends EnemySprites {
+
+    public GinkerSprite() {
+        super("/Images/Ginker.png");
+    }
+}
+class BehemothSprite extends EnemySprites {
+
+    public BehemothSprite() {
+        super("/Images/Ginker.png");
+    }
 }

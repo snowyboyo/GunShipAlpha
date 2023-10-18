@@ -8,7 +8,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 class Enemy {
     Point location;
-    private Point target;
+    Point target;
     int health = 2;
     private Timer firingTimer;
     protected EnemySprites sprites;
@@ -16,7 +16,7 @@ class Enemy {
     public Enemy(int x, int y, int targetX, int targetY) {
         this.location = new Point(x, y);
         this.target = new Point(targetX, targetY);
-        this.sprites = new EnemySprites("/Images/Behemoth.png");
+        this.sprites = new EnemySprites("/Images/Tank.png");
         scheduleFiring();
     }
      void scheduleFiring() {
@@ -47,7 +47,7 @@ class Enemy {
         if (location.y > target.y) location.y--;
     }
 
-    private boolean hasEnemyReachedTarget() {
+    boolean hasEnemyReachedTarget() {
         if(location.x == target.x && location.y == target.y ) {
             health-=2;
             Game.gs.removeEnemy();
@@ -99,14 +99,14 @@ class Enemy {
 
 
 }
-class Tank extends Enemy {
+class Mine extends Enemy {
     private Mediator M;
     private Random random = new Random();
 
 
-    public Tank(int x, int y, int targetX, int targetY, Mediator M) {
+    public Mine(int x, int y, int targetX, int targetY, Mediator M) {
         super(x, y, targetX, targetY);
-        this.sprites = new TankSprite();
+        this.sprites = new MineSprite();
         this.health = 1;
         this.M = M;
     }
@@ -161,4 +161,34 @@ class Tank extends Enemy {
         }
         return particles;
     }
+}
+
+class Ginker extends Enemy{
+
+    public Ginker(int x, int y, int targetX, int targetY) {
+        super(x, y, targetX, targetY);
+        this.sprites = new GinkerSprite();
+    }
+    @Override
+    public void moveTowardTarget() {
+        if (hasEnemyReachedTarget()) return;
+        if (location.x < target.x) location.x += 2;
+        if (location.x> target.x) location.x -= 2;
+        if (location.y < target.y) location.y += 2;
+        if (location.y > target.y) location.y -= 2;
+    }
+    @Override
+    protected void scheduleFiring() {
+        //preventing Ginkers from firing projectiles by overriding it with empty method
+    }
+
+}
+class Behemoth extends Enemy{
+
+    public Behemoth(int x, int y, int targetX, int targetY) {
+        super(x, y, targetX, targetY);
+        this.sprites = new BehemothSprite();
+        this.health = 3;
+    }
+
 }
