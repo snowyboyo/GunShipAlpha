@@ -1,31 +1,38 @@
+package GSA;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
-import java.util.Objects;
 
-public class EnemySprites {
+public class EnemySprite {
 
-    private BufferedImage SPRITE;
+    private static final String SPRITE_PATH = "src/Images/GSA.Behemoth.png";
+    private static final BufferedImage SPRITE = loadSprite(SPRITE_PATH);
 
-    public EnemySprites(String spritePath) {
-        this.SPRITE = loadSprite(spritePath);
-    }
-
-    static BufferedImage loadSprite(String path) {
+    private static BufferedImage loadSprite(String path) {
         try {
-            return ImageIO.read(Objects.requireNonNull(EnemySprites.class.getResourceAsStream(path)));
+            return ImageIO.read(new File(path));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public Rectangle getBounds(int x, int y) {
+    public static BufferedImage sprite() {
+        return SPRITE;
+    }
+
+    public static Rectangle getBounds(int x, int y) {
         return new Rectangle(x, y, SPRITE.getWidth(), SPRITE.getHeight());
     }
 
-    public Point2D getFireOffset(Point location, Point target) {
+    public static boolean isPointInside(int x, int y, Point point) {
+        Rectangle bounds = new Rectangle(x, y, SPRITE.getWidth(), SPRITE.getHeight());
+        return bounds.contains(point);
+    }
+    public static Point2D getFireOffset(Point location, Point target) {
         double directionX = target.x - location.x;
         double directionY = target.y - location.y;
         double magnitude = Math.sqrt(directionX * directionX + directionY * directionY);
@@ -35,27 +42,7 @@ public class EnemySprites {
         double offsetY = directionY * SPRITE.getHeight() / 2;
         return new Point2D.Double(location.x + offsetX, location.y + offsetY);
     }
-
-    public void draw(Graphics g, Point location) {
+    public static void draw(Graphics g, Point location) {
         g.drawImage(SPRITE, location.x, location.y, null);
-    }
-}
- class MineSprite extends EnemySprites {
-
-     public MineSprite() {
-         super("/Images/Mine.png");
-     }
-
-}
-class GinkerSprite extends EnemySprites {
-
-    public GinkerSprite() {
-        super("/Images/Ginker.png");
-    }
-}
-class BehemothSprite extends EnemySprites {
-
-    public BehemothSprite() {
-        super("/Images/Ginker.png");
     }
 }

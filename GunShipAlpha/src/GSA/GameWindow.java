@@ -1,4 +1,9 @@
+package GSA;
+
+import GSA.Game;
+
 import javax.swing.*;
+import java.awt.*;
 
 public class GameWindow {
     private final JFrame frame;
@@ -11,11 +16,10 @@ public class GameWindow {
         frame.setLocationRelativeTo(null);
 
         gameCanvas = new Game();
+        gameCanvas.setPreferredSize(new Dimension(width, height));
         frame.add(gameCanvas);
+        frame.getContentPane().setPreferredSize(new Dimension(width, height));
+        frame.pack();
         frame.setVisible(true);
-    }
-
-    public Game getGameCanvas() {
-        return gameCanvas;
     }
 }

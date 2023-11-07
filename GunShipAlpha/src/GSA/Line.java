@@ -1,3 +1,5 @@
+package GSA;
+
 import java.awt.*;
 
 public class Line {
