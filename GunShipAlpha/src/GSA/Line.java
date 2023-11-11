@@ -1,5 +1,3 @@
-package GSA;
-
 import java.awt.*;
 
 public class Line {
@@ -21,17 +19,6 @@ public class Line {
     }
     public boolean isExpired() {
         return System.currentTimeMillis() - creationTime > LINE_LIFETIME;
-    }
-    public boolean isWithinExplosionRange(Point explosionCenter, int radius) {
-        double distance1 = this.start.distance(explosionCenter);
-        double distance2 = this.end.distance(explosionCenter);
-        return distance1 <= radius || distance2 <= radius;
-    }
-    public boolean isIntersectingWithPoint(int x, int y) {
-        return x >= Math.min(start.x, end.x)
-                && x <= Math.max(start.x, end.x)
-                && y >= Math.min(start.y, end.y)
-                && y <= Math.max(start.y, end.y);
     }
 
 }
