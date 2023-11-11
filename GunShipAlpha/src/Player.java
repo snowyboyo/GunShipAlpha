@@ -12,7 +12,7 @@ public class Player {
     }
     void loadSprite() {
         try {
-            sprite = ImageIO.read(new File("src/Images/GunShip.png"));
+            sprite = ImageIO.read(new File("GunShipAlpha/src/Images/GunShip.png"));
         } catch (IOException e) {
             throw new RuntimeException("Failed to load sprite", e);
         }
@@ -47,4 +47,7 @@ public class Player {
         return playerBounds.intersects(enemyBounds);
     }
 
+    public void takeExplosionDamage() {
+        health -= 5;
+    }
 }

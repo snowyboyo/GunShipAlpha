@@ -74,9 +74,7 @@ class MouseState {
     }
 
     public double angleBetweenStartPointAndCurrentPoint(Point currentPoint) {
-        if (originalDirection == null) {
-            throw new IllegalStateException("Original direction is not set.");
-        }
+       initializeOriginalDirection();
 
         Point2D currentDirection = new Point2D.Double(startPoint.x - currentPoint.x, startPoint.y - currentPoint.y);
         return angleBetween2Lines(originalDirection, currentDirection);
@@ -86,6 +84,9 @@ class MouseState {
         return angleBetweenStartPointAndCurrentPoint(currentPoint) < THRESHOLD_ANGLE;
     }
     double angleBetween2Lines(Point2D line1, Point2D line2) {
+        if (line1 == null || line2 == null) {
+            return Double.NaN;
+        }
         double angle1 = Math.atan2(line1.getY(), line1.getX());
         double angle2 = Math.atan2(line2.getY(), line2.getX());
         double result = angle1 - angle2;
