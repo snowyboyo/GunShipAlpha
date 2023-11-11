@@ -15,20 +15,19 @@ private boolean gameOver = false;
         startGameLoop();
         setupMouseListeners();
     }
-
     private void startGameLoop() {
         Timer gameLoop = new Timer(16, e -> {
-            if (!player.isDead()) {
-                moveEnemies();
-                boolean playerHit = gs.handleProjectileCollisionAndMoveEnemies();
-                if (gs.checkBehemothPlayerCollisions(player, getWidth(), getHeight()) || playerHit||gs.checkTankPlayerCollisions(player, getWidth(), getHeight())) {
-                    player.reduceHealth();
-                }
-
-                repaint();
-            } else {
+            if (player.isDead()) {
                 gameOver = true;
                 repaint();
+            } else {
+            moveEnemies();
+            boolean playerHit = gs.handleProjectileCollisionAndMoveEnemies();
+            if (gs.checkBehemothPlayerCollisions(player, getWidth(), getHeight()) || playerHit||gs.checkTankPlayerCollisions(player, getWidth(), getHeight())) {
+                player.reduceHealth();
+            }
+
+            repaint();
             }
         });
         gameLoop.start();
@@ -140,11 +139,12 @@ private boolean gameOver = false;
 
     @Override
     public void paint(Graphics g) {
-        if (!gameOver) {
-            player.draw(g, getWidth(), getHeight());
-            render(g);
+        if (gameOver) {
+            drawGameOverScreen(g);
         } else {
             drawGameOverScreen(g);
+            player.draw(g, getWidth(), getHeight());
+            render(g);
         }
     }
     private void drawGameOverScreen(Graphics g) {

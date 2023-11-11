@@ -165,4 +165,10 @@ class GameState {
         }
         return false;
     }
+    public int getBehemothCount(){
+        return behemoths.size();
+    }
+    public int getLineListSize(){
+        return lines.size();
+    }
 }

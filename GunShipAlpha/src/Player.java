@@ -19,9 +19,7 @@ public class Player {
     }
 
     public void reduceHealth(){
-        System.out.println("reducing health");
         health--;
-        isDead();
     }
     public boolean isDead(){
         boolean dead = health <= 0;
