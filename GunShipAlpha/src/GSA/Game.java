@@ -20,15 +20,23 @@ public class Game extends Canvas implements Mediator, KeyListener {
     protected Player player = new Player(850, 450);
     protected static boolean gameOver = false;
     private int waveNumber = 0;
-    private ArrayList<ExplosionParticle> ongoingExplosions = new ArrayList<>();
+    protected ArrayList<ExplosionParticle> explosionParticles = new ArrayList<>();
     private ArrayList<Integer> keysPressed = new ArrayList<>();
     private static int score = 0;
     private final int screenWidth = 1800;
     private final int screenHeight = 1000;
     private final int moveSpeed = 3;
     private final int playerSize = 50;
-    private BufferedImage splashImage;
-    private boolean showSplash = true;
+    private BufferedImage splashImage1;
+    private BufferedImage splashImage2;
+    private boolean showSplash1 = true;
+    private boolean showSplash2 = false;
+    private Point cursorPosition = new Point();
+    private static Timer shakeTimer;
+    private Timer splashTimer;
+    private static final int shakeDuration = 500;
+    private static final int shakeIntensity = 5;
+
 
     @Override
     public void handleExplosion(Point location, int explosionSize) {
@@ -42,21 +50,47 @@ public class Game extends Canvas implements Mediator, KeyListener {
 
     public Game() {
         try {
-            splashImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("/images/SplashSscreen.png")));
+            splashImage1 = ImageIO.read(Objects.requireNonNull(getClass().getResource("/images/SplashSscreen.png")));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            splashImage2 = ImageIO.read(Objects.requireNonNull(getClass().getResource("/images/SplashScreen.png")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         startGameLoop();
-        new Timer(3000, e -> showSplash = false).start();
+        new Timer(5000, e -> showSplash1 = false).start();
+        initializeSplashTimer();
         setupMouseListeners();
         this.addKeyListener(this);
         this.setFocusable(true);
         this.requestFocus();
 
     }
+    private void initializeSplashTimer() {
+        splashTimer = new Timer(5000, e -> {
+            showSplash2 = false;
+            splashTimer.stop(); // Optional: stop the timer after execution
+        });
+    }
+
+    protected void startSplashScreenTimer() {
+        showSplash2 = true;
+        if (splashTimer.isRunning()) {
+            splashTimer.stop();
+        }
+
+        splashTimer.start();
+    }
     public void showSplashScreen(Graphics g){
-        if(showSplash) {
-            g.drawImage(splashImage, 1, 1, null);
+        if(showSplash1) {
+            g.drawImage(splashImage1, 1, 1, null);
+        }
+    }
+    public void showSplashScreen2(Graphics g){
+        if(showSplash2) {
+            g.drawImage(splashImage2, 1, 100, null);
         }
     }
 
@@ -64,7 +98,7 @@ public class Game extends Canvas implements Mediator, KeyListener {
 
         Timer gameLoop = new Timer(16, e -> {
             startGameOverCountdown();
-            if(!showSplash)update();
+            if(!showSplash1&&!showSplash2)update();
             repaint();
         });
         gameLoop.start();
@@ -73,10 +107,9 @@ public class Game extends Canvas implements Mediator, KeyListener {
     private void update() {
         moveEnemies();
         updateTankTargets(player.location);
-        gs.handleProjectileCollison(player);
-        gs.checkBehemothPlayerCollisions(player);
+        gs.handleProjectileCollison(player,this);
+        gs.checkBehemothPlayerCollisions(player,this);
         updateTargets();
-        updateEnemies();
         gs.removeDeadEnemies();
         if (!player.isDead() && !gameOver) {
             takeKeyboardInput();
@@ -95,11 +128,28 @@ public class Game extends Canvas implements Mediator, KeyListener {
         if (player.isDead() && !gameOver) {
             Timer delayTimer = new Timer(1000, delayEvent -> {
                 gameOver = true;
-                restartGame();
             });
             delayTimer.setRepeats(false);
             delayTimer.start();
         }
+    }
+    public void playerHit() {
+        if (shakeTimer != null && shakeTimer.isRunning()) {
+            return;
+        }
+        long startTime = System.currentTimeMillis();
+        shakeTimer = new Timer(50, e -> {
+            if (System.currentTimeMillis() - startTime > shakeDuration) {
+                shakeTimer.stop();
+                this.setLocation(0, 0);
+                return;
+            }
+            Random rand = new Random();
+            int x = rand.nextInt(shakeIntensity * 2) - shakeIntensity;
+            int y = rand.nextInt(shakeIntensity * 2) - shakeIntensity;
+            this.setLocation(x, y);
+        });
+        shakeTimer.start();
     }
 
     private void updateTargets() {
@@ -143,10 +193,9 @@ public class Game extends Canvas implements Mediator, KeyListener {
             if (player.location.y >= moveSpeed) player.location.y -= moveSpeed;
         }
     }
-    private void restartGame() {
-        if (keysPressed.contains(KeyEvent.VK_Q)) {
+    protected void restartGame() {
             if (gameOver) {
-                ongoingExplosions.clear();
+                explosionParticles.clear();
                 waveNumber = 0;
                 score = 0;
                 gameOver = false;
@@ -154,64 +203,83 @@ public class Game extends Canvas implements Mediator, KeyListener {
                 gs.projectiles.clear();
                 gs.lines.clear();
                 player.resetHealth();
-            }
         }
     }
 
     public void updateEnemies() {
-        removeParticles();
+        updateParticles();
         gs.forEachEnemy(enemy -> {
-            enemy.update(gs.explosion,gs.lines,gs.projectiles,player);
+            removeParticles(enemy);
+            enemy.update(gs.explosion, gs.lines, gs.projectiles, player);
             addParticles(enemy);
         });
     }
-
-    private void removeParticles() {
-        for (Iterator<ExplosionParticle> iterator = ongoingExplosions.iterator(); iterator.hasNext(); ) {
-            System.out.println(ongoingExplosions.size());
+    private void updateParticles() {
+        for (Iterator<ExplosionParticle> iterator = explosionParticles.iterator(); iterator.hasNext(); ) {
+            System.out.println(explosionParticles.size());
             ExplosionParticle particle = iterator.next();
             particle.update();
+        }
+    }
+    private void removeParticles(Enemy enemy) {
+        for (Iterator<ExplosionParticle> iterator = explosionParticles.iterator(); iterator.hasNext(); ) {
+            ExplosionParticle particle = iterator.next();
             boolean shouldRemove = false;
-            shouldRemove = collidedWithPlayer(particle, shouldRemove);
-            shouldRemove = collidedWithLine(particle, shouldRemove);
+            shouldRemove = particleCollidedWithPlayer(particle, shouldRemove);
+            shouldRemove = particleCollidedWithLine(particle, shouldRemove);
+            shouldRemove = particleCollidedWithEnemy(enemy,shouldRemove);
             if (shouldRemove) {
-
                 iterator.remove();
             }
         }
     }
 
-    private void addParticles(Tank enemy) {
+    protected void addParticles(Enemy enemy) {
         java.util.List<ExplosionParticle> particles = enemy.returnLastGeneratedParticles();
         if(particles != null) {
-            ongoingExplosions.addAll(particles);
+            explosionParticles.addAll(particles);
         }
     }
 
 
-    private boolean collidedWithPlayer(ExplosionParticle particle, boolean shouldRemove) {
+    public boolean particleCollidedWithPlayer(ExplosionParticle particle, boolean shouldRemove) {
         if (particle.isCollidingWithPlayer(player)) {
             player.reduceHealth();
+            playerHit();
             shouldRemove = true;
         }
         return shouldRemove;
     }
 
-    private static boolean collidedWithLine(ExplosionParticle particle, boolean shouldRemove) {
+    static boolean particleCollidedWithLine(ExplosionParticle particle, boolean shouldRemove) {
         for (Line line : gs.lines) {
             if (particle.isCollidingWithLine(line)) {
-                System.out.println("Removing particle due to collision with line]");
                 shouldRemove = true;
                 break;
             }
         }
         return shouldRemove;
     }
+    protected boolean particleCollidedWithEnemy(Enemy enemy, boolean shouldRemove) {
+             for (ExplosionParticle explosionParticle : explosionParticles) {
+                 if (enemy.isCollidingWithParticle(explosionParticle)) {
+                     enemy.removeHealth();
+                     shouldRemove = true;
+                     break;
+                 }
+             }
+        return shouldRemove;
+    }
+    private void updateCursorPosition(MouseEvent e) {
+        cursorPosition.setLocation(e.getPoint());
+        player.updateAngle(cursorPosition);
+    }
 
     private void setupMouseListeners() {
         setupMousePressListener();
         setupMouseReleaseListener();
         setupMouseDragListener();
+        setupMouseMovedListener();
     }
 
     private void setupMousePressListener() {
@@ -219,6 +287,14 @@ public class Game extends Canvas implements Mediator, KeyListener {
             @Override
             public void mousePressed(MouseEvent e) {
                 handleMousePress(e);
+            }
+        });
+    }
+    private void setupMouseMovedListener(){
+        this.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                updateCursorPosition(e);
             }
         });
     }
@@ -331,8 +407,8 @@ public class Game extends Canvas implements Mediator, KeyListener {
     }
 
     private boolean canSpawnEnemyAt(int x, int y) {
-        int width = 100;
-        int height = 100;
+        int width = 50;
+        int height =50;
         Rectangle newEnemyBounds = new Rectangle(x, y, width, height);
         return !gs.isSpaceOccupied(newEnemyBounds);
     }
@@ -353,7 +429,7 @@ public class Game extends Canvas implements Mediator, KeyListener {
     }
 
     private void spawnEnemyAt(int x, int y) {
-        Tank enemy = new Tank(x, y, getWidth() / 2, getHeight() / 2);
+        Enemy enemy = new Enemy(x, y, getWidth() / 2, getHeight() / 2);
         gs.addEnemy(enemy);
     }
 
@@ -390,7 +466,8 @@ public class Game extends Canvas implements Mediator, KeyListener {
     @Override
     public void paint(Graphics g) {
         showSplashScreen(g);
-        if (!showSplash) {
+        showSplashScreen2(g);
+        if (!showSplash1&&!showSplash2) {
             if (gameOver) {
                 drawGameOverScreen(g);
             } else {
@@ -404,7 +481,7 @@ public class Game extends Canvas implements Mediator, KeyListener {
     }
 
     private void drawExplosions(Graphics g) {
-        for (ExplosionParticle explosion : ongoingExplosions) {
+        for (ExplosionParticle explosion : explosionParticles) {
             explosion.draw(g);
         }
     }

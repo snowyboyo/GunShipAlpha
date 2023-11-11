@@ -4,7 +4,7 @@ package GSA;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class TankExplosion {
+public class Explosion {
 
     public boolean shouldExplode(Mine mine, ArrayList<Line> lines,
                                  CopyOnWriteArrayList<Projectile> projectiles,

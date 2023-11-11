@@ -1,35 +1,41 @@
 package GSA;
 
 import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 class GameState {
-    TankExplosion explosion = new TankExplosion();
-    protected CopyOnWriteArrayList<Tank> enemies = new CopyOnWriteArrayList<>();
+    Explosion explosion = new Explosion();
+    protected CopyOnWriteArrayList<Enemy> enemies = new CopyOnWriteArrayList<>();
     protected ArrayList<Line> lines = new ArrayList<>();
     protected CopyOnWriteArrayList<Projectile> projectiles = new CopyOnWriteArrayList<>();
+
     public boolean areAllEnemiesDefeated() {
         return enemies.isEmpty();
     }
 
 
+    public int getEnemyCount() {
+        return enemies.size();
+    }
+    public int getLineCount() {
+        return lines.size();
+    }
 
     public void updateTankTargets(Point newTarget) {
-        for (Tank tank : enemies) {
+        for (Enemy tank : enemies) {
             tank.setTarget(newTarget);
         }
     }
+
     public void removeDeadEnemies() {
-        enemies.removeIf(Tank::isDead);
+        enemies.removeIf(Enemy::isDead);
     }
 
 
-
-    boolean isBehemothBlocked(Tank enemy) {
+    boolean isBehemothBlocked(Enemy enemy) {
         for (Line line : lines) {
             if (enemy.isIntersectingLine(line)) {
                 return true;
@@ -38,7 +44,7 @@ class GameState {
         return false;
     }
 
-    boolean handleProjectileCollison(Player player) {
+    boolean handleProjectileCollison(Player player, Game game) {
         boolean playerHit = false;
         ArrayList<Projectile> projectilesToRemove = new ArrayList<>();
         for (Projectile projectile : projectiles) {
@@ -54,7 +60,8 @@ class GameState {
                 handleHitForProjectile(projectile, projectilesToRemove);
             }
 
-            if (projectile.isCollidingWithPlayer()) {
+            if (projectile.isCollidingWithPlayer(player)) {
+                game.playerHit();
                 playerHit = true;
                 player.reduceHealth();
                 projectilesToRemove.add(projectile);
@@ -66,7 +73,7 @@ class GameState {
     }
 
     boolean doesProjectileHitAnyBehemoths(Projectile projectile) {
-        for (Tank enemy : enemies) {
+        for (Enemy enemy : enemies) {
             if (enemy.isCollidingWithProjectile(projectile)) {
                 return true;
             }
@@ -75,7 +82,7 @@ class GameState {
     }
 
     void handleHitForProjectile(Projectile projectile, ArrayList<Projectile> projectilesToRemove) {
-        for (Tank enemy : enemies) {
+        for (Enemy enemy : enemies) {
             if (enemy.isCollidingWithProjectile(projectile)) {
                 enemy.removeHealth();
                 projectilesToRemove.add(projectile);
@@ -84,10 +91,11 @@ class GameState {
             }
         }
     }
+
     public void removeEnemy() {
-        Iterator<Tank> iterator = enemies.iterator();
+        Iterator<Enemy> iterator = enemies.iterator();
         while (iterator.hasNext()) {
-            Tank enemy = iterator.next();
+            Enemy enemy = iterator.next();
             if (enemy.isDead()) {
                 enemies.remove(enemy);
             }
@@ -100,16 +108,17 @@ class GameState {
     }
 
     void drawBehemoths(Graphics g) {
-        for (Tank enemy : enemies) {
+        for (Enemy enemy : enemies) {
             enemy.draw(g);
         }
     }
 
-    void addEnemy(Tank enemy) {
+    void addEnemy(Enemy enemy) {
         enemies.add(enemy);
     }
-    public void forEachEnemy(Consumer<Tank> action) {
-        for (Tank enemy : enemies) {
+
+    public void forEachEnemy(Consumer<Enemy> action) {
+        for (Enemy enemy : enemies) {
             action.accept(enemy);
         }
     }
@@ -140,9 +149,11 @@ class GameState {
             projectile.update();
         }
     }
-    public boolean checkBehemothPlayerCollisions(Player player) {
-        for (Tank enemy : enemies) {
+
+    public boolean checkBehemothPlayerCollisions(Player player, Game game) {
+        for (Enemy enemy : enemies) {
             if (player.isTouchedByEnemy(enemy)) {
+                game.playerHit();
                 player.reduceHealth();
                 enemy.removeHealth();
                 enemy.removeHealth();
@@ -152,8 +163,9 @@ class GameState {
         }
         return false;
     }
+
     public boolean isSpaceOccupied(Rectangle newEnemyBounds) {
-        for (Tank existingEnemy : enemies) {
+        for (Enemy existingEnemy : enemies) {
             Rectangle existingEnemyBounds = existingEnemy.getBounds();
             if (existingEnemyBounds.intersects(newEnemyBounds)) {
                 return true;
@@ -161,6 +173,7 @@ class GameState {
         }
         return false;
     }
+
     public void handleExplosion(Point center, int radius) {
         lines.removeIf(line -> line.isWithinExplosionRange(center, radius));
 

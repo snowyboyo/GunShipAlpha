@@ -29,5 +29,8 @@ public class ExplosionParticle {
     public boolean isCollidingWithLine(Line line) {
         return line.isIntersectingWithPoint(this.location.x, this.location.y);
     }
+    public boolean isInsideEnemy(Rectangle bounds) {
+        return bounds.contains(location.x, location.y);
+    }
 
 }

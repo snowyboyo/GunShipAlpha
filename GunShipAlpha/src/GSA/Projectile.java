@@ -44,9 +44,9 @@ class Projectile {
         if(!isPlayerProjectile) return false;
         return bounds.contains(location.x, location.y);
     }
-    public boolean isCollidingWithPlayer() {
+    public boolean isCollidingWithPlayer(Player player) {
         if (isPlayerProjectile) return false;
-        Rectangle playerBounds = new Rectangle(850, 450, 100, 100);
+        Rectangle playerBounds = new Rectangle(player.location.x, player.location.y, 50, 50);
         Rectangle projectileBounds = new Rectangle(location.x, location.y, 10,10 );
         return projectileBounds.intersects(playerBounds);
     }

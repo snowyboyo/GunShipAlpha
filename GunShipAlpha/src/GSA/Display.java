@@ -8,7 +8,7 @@ public class Display {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            GameWindow gameWindow = new GameWindow("My GSA.Game App", WIDTH, HEIGHT);
+            GameWindow gameWindow = new GameWindow("GunShipAlpha", WIDTH, HEIGHT);
         });
     }
 

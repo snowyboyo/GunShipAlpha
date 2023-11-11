@@ -7,7 +7,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static GSA.Game.gs;
 
-class Tank {
+class Enemy {
     protected Point location;
     protected Point target;
     protected int health = 2;
@@ -18,7 +18,7 @@ class Tank {
     protected double TAU = Math.PI * 2;
     protected double rotationAngle = 0.0;
 
-    public Tank(int x, int y, int targetX, int targetY) {
+    public Enemy(int x, int y, int targetX, int targetY) {
         this.location = new Point(x, y);
         this.target = new Point(targetX, targetY);
         this.sprites = new EnemySprites("Tank.png");
@@ -31,7 +31,7 @@ class Tank {
     public List<ExplosionParticle> explode() {
         return Collections.emptyList();
     }
-    public void update(TankExplosion explosion, ArrayList<Line> lines, CopyOnWriteArrayList<Projectile> projectiles, Player player) {
+    public void update(Explosion explosion, ArrayList<Line> lines, CopyOnWriteArrayList<Projectile> projectiles, Player player) {
         if (!gs.isBehemothBlocked(this)) {
             moveTowardTarget();
         }
@@ -68,7 +68,7 @@ class Tank {
         double distance = Math.sqrt(dx * dx + dy * dy);
         double unitX = dx / distance;
         double unitY = dy / distance;
-        int speed = 2;
+        int speed = 4;
         double velocityX = unitX * speed;
         double velocityY = unitY * speed;
         location.x += (int) velocityX;
@@ -98,6 +98,10 @@ class Tank {
     public boolean isCollidingWithProjectile(Projectile projectile) {
       Rectangle enemyBounds = sprites.getBounds(location.x, location.y);
         return projectile.isInsideEnemy(enemyBounds);
+    }
+    public boolean isCollidingWithParticle(ExplosionParticle particle) {
+        Rectangle enemyBounds = sprites.getBounds(location.x, location.y);
+        return particle.isInsideEnemy(enemyBounds);
     }
     public void draw(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
@@ -144,7 +148,7 @@ class Tank {
 
 
 }
-class Mine extends Tank {
+class Mine extends Enemy {
     private Mediator M;
     private Random random = new Random();
 
@@ -168,7 +172,7 @@ class Mine extends Tank {
             return particles;
     }
     @Override
-    public void update(TankExplosion explosion, ArrayList<Line> lines, CopyOnWriteArrayList<Projectile> projectiles, Player player) {
+    public void update(Explosion explosion, ArrayList<Line> lines, CopyOnWriteArrayList<Projectile> projectiles, Player player) {
         super.update(explosion, lines, projectiles, player);
 
         if (isDead()) {
@@ -248,7 +252,7 @@ class Mine extends Tank {
 }
 
 
-class Ginker extends Tank {
+class Ginker extends Enemy {
 
     public Ginker(int x, int y, int targetX, int targetY) {
         super(x, y, targetX, targetY);
@@ -257,10 +261,10 @@ class Ginker extends Tank {
     @Override
     public void moveTowardTarget() {
         if (hasEnemyReachedTarget()) return;
-        if (location.x < target.x) location.x += 2;
-        if (location.x> target.x) location.x -= 2;
-        if (location.y < target.y) location.y += 2;
-        if (location.y > target.y) location.y -= 2;
+        if (location.x < target.x) location.x += 4;
+        if (location.x> target.x) location.x -= 4;
+        if (location.y < target.y) location.y += 4;
+        if (location.y > target.y) location.y -= 4;
     }
     @Override
     protected void scheduleFiring() {
@@ -268,7 +272,7 @@ class Ginker extends Tank {
     }
 
 }
-class Behemoth extends Tank {
+class Behemoth extends Enemy {
 
     public Behemoth(int x, int y, int targetX, int targetY) {
         super(x, y, targetX, targetY);
