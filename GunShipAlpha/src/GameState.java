@@ -1,20 +1,28 @@
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 class GameState {
 
-    private ArrayList<Enemy> enemies = new ArrayList<>();
+    private CopyOnWriteArrayList<Enemy> enemies = new CopyOnWriteArrayList<>();
     private ArrayList<LineLogic> lines = new ArrayList<>();
-    private ArrayList<Projectile> projectiles = new ArrayList<>();
+    private CopyOnWriteArrayList<Projectile> projectiles = new CopyOnWriteArrayList<>();
+
+
 
     void handleEnemyMovement() {
-        for (Enemy enemy : enemies) {
+        Iterator<Enemy> iterator = enemies.iterator();
+        while (iterator.hasNext()) {
+            Enemy enemy = iterator.next();
             if (!isEnemyBlocked(enemy)) {
                 enemy.moveTowardTarget();
+                removeEnemy();
             }
         }
     }
+
 
     boolean isEnemyBlocked(Enemy enemy) {
         for (LineLogic line : lines) {
@@ -25,14 +33,23 @@ class GameState {
         return false;
     }
 
-    void handleProjectileCollision() {
+    boolean handleProjectileCollisionAndMoveEnemies() {
+        handleEnemyMovement(); // Move enemies first
+        boolean playerHit = false;
         ArrayList<Projectile> projectilesToRemove = new ArrayList<>();
         for (Projectile projectile : projectiles) {
             if (doesProjectileHitAnyEnemy(projectile)) {
                 handleHitForProjectile(projectile, projectilesToRemove);
             }
+            if (projectile.isCollidingWithPlayer()) {
+                System.out.println("Projectile hit the player");
+                playerHit = true;
+                System.out.println(playerHit);
+                projectilesToRemove.add(projectile);
+            }
         }
         projectiles.removeAll(projectilesToRemove);
+        return playerHit;
     }
 
     boolean doesProjectileHitAnyEnemy(Projectile projectile) {
@@ -49,10 +66,16 @@ class GameState {
             if (enemy.isCollidingWithProjectile(projectile)) {
                 enemy.removeHealth();
                 projectilesToRemove.add(projectile);
-                if (enemy.isDead()) {
-                    enemies.remove(enemy);
-                }
                 return;
+            }
+        }
+    }
+    public void removeEnemy() {
+        Iterator<Enemy> iterator = enemies.iterator();
+        while (iterator.hasNext()) {
+            Enemy enemy = iterator.next();
+            if (enemy.isDead()) {
+                enemies.remove(enemy);
             }
         }
     }
