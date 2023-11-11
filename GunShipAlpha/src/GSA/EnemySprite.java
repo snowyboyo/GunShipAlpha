@@ -1,3 +1,5 @@
+package GSA;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -7,7 +9,7 @@ import java.io.IOException;
 
 public class EnemySprite {
 
-    private static final String SPRITE_PATH = "src/Images/Behemoth.png";
+    private static final String SPRITE_PATH = "src/Images/GSA.Behemoth.png";
     private static final BufferedImage SPRITE = loadSprite(SPRITE_PATH);
 
     private static BufferedImage loadSprite(String path) {

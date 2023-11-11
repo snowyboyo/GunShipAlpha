@@ -1,14 +1,16 @@
+package GSA;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
 public class EnemySprites {
 
     private BufferedImage SPRITE;
+    private static String defaultPath = "/Images/";
 
     public EnemySprites(String spritePath) {
         this.SPRITE = loadSprite(spritePath);
@@ -16,7 +18,7 @@ public class EnemySprites {
 
     static BufferedImage loadSprite(String path) {
         try {
-            return ImageIO.read(Objects.requireNonNull(EnemySprites.class.getResourceAsStream(path)));
+            return ImageIO.read(Objects.requireNonNull(EnemySprites.class.getResourceAsStream(defaultPath + path)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -32,19 +34,30 @@ public class EnemySprites {
         double magnitude = Math.sqrt(directionX * directionX + directionY * directionY);
         directionX /= magnitude;
         directionY /= magnitude;
-        double offsetX = directionX * SPRITE.getWidth() / 2;
-        double offsetY = directionY * SPRITE.getHeight() / 2;
+        double offsetX = directionX * SPRITE.getWidth();
+        double offsetY = directionY * SPRITE.getHeight();
         return new Point2D.Double(location.x + offsetX, location.y + offsetY);
     }
-
-    public void draw(Graphics g, Point location) {
-        g.drawImage(SPRITE, location.x, location.y, null);
+    public BufferedImage getSprite(){
+        return SPRITE;
     }
 }
- class TankSprite extends EnemySprites {
+ class MineSprite extends EnemySprites {
 
-     public TankSprite() {
-         super("/Images/Tank.png");
+     public MineSprite() {
+         super("Mine.png");
      }
 
+}
+class GinkerSprite extends EnemySprites {
+
+    public GinkerSprite() {
+        super("Ginker.png");
+    }
+}
+class BehemothSprite extends EnemySprites {
+
+    public BehemothSprite() {
+        super("Behemoth.png");
+    }
 }

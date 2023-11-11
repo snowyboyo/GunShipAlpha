@@ -1,9 +1,10 @@
+package GSA;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
 import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 
 class GameStateTest {
@@ -11,104 +12,129 @@ class GameStateTest {
     @Test
     void testEnemyPlayerCollisionsOverlapping() {
         GameState gameState = new GameState();
-        Player player = new Player();
+       Game game = new Game();
         Enemy enemy = new Enemy(350, 350, 50, 50);
         gameState.addEnemy(enemy);
-        boolean isCollision = gameState.checkBehemothPlayerCollisions(player);
+        boolean isCollision = gameState.checkBehemothPlayerCollisions(game.player,game);
         assertTrue(isCollision);
     }
     @Test
     void testEnemyPlayerCollisionsToTheLeft() {
         GameState gameState = new GameState();
-        Player player = new Player();
-        Enemy enemy = new Enemy(450, 350, 350, 350);
+        Game game = new Game();
+        Enemy enemy = new Enemy(805, 475, 350, 350);
         //placing the enemy to the left of the player
         gameState.addEnemy(enemy);
         enemy.moveTowardTarget();
-        boolean isCollision = gameState.checkBehemothPlayerCollisions(player);
+        boolean isCollision = gameState.checkBehemothPlayerCollisions(game.player,game);
         assertTrue(isCollision);
     }
     @Test
     void testEnemyPlayerCollisionsToTheRight() {
         GameState gameState = new GameState();
-        Player player = new Player();
-        Enemy enemy = new Enemy(250, 350, 350, 350);
+        Game game = new Game();
+        Enemy enemy = new Enemy(895, 450, 900, 450);
         //placing the enemy to the right of the player
         gameState.addEnemy(enemy);
         enemy.moveTowardTarget();
-        boolean isCollision = gameState.checkBehemothPlayerCollisions(player);
+        boolean isCollision = gameState.checkBehemothPlayerCollisions(game.player,game);
         assertTrue(isCollision);
     }
     @Test
     void testEnemyPlayerCollisionsFromTheTop() {
         GameState gameState = new GameState();
-        Player player = new Player();
-        Enemy enemy = new Enemy(350, 250, 350, 350);
+        Game game = new Game();
+        Enemy enemy = new Enemy(850, 405, 850, 405);
         //placing the enemy above the player
         gameState.addEnemy(enemy);
         enemy.moveTowardTarget();
-        boolean isCollision = gameState.checkBehemothPlayerCollisions(player);
+        boolean isCollision = gameState.checkBehemothPlayerCollisions(game.player,game);
         assertTrue(isCollision);
     }
     @Test
     void testEnemyPlayerCollisionsFromTheBottom() {
         GameState gameState = new GameState();
-        Player player = new Player();
-        Enemy enemy = new Enemy(350, 450, 350, 350);
+        Game game = new Game();
+        Enemy enemy = new Enemy(850, 495, 850, 495);
         //placing the enemy below the player
         gameState.addEnemy(enemy);
         enemy.moveTowardTarget();
-        boolean isCollision = gameState.checkBehemothPlayerCollisions(player);
+        boolean isCollision = gameState.checkBehemothPlayerCollisions(game.player,game);
         assertTrue(isCollision);
     }
     @Test
     void testEnemyPlayerNotColliding() {
         GameState gameState = new GameState();
-        Player player = new Player();
-        Enemy enemy = new Enemy(350, 350, 50, 50);
+        Game game = new Game();
+        Enemy enemy = new Enemy(700, 350, 50, 50);
         //350,350 = one pixel away from the player
         gameState.addEnemy(enemy);
-        boolean isCollision = gameState.checkBehemothPlayerCollisions(player);
+        boolean isCollision = gameState.checkBehemothPlayerCollisions(game.player,game);
         assertFalse(isCollision);
     }
     @Test
+    void testExplosionLineCollision() {
+        Point location = new Point(350,400);
+        Point velocity = new Point(350,400);
+        ExplosionParticle particle = new ExplosionParticle(location,velocity);
+        Point start = new Point(350,350);
+        Point end = new Point(350,450);
+        GameState gs = new GameState();
+        gs.addLine(end,start);
+        boolean shouldRemove = true;
+        boolean isCollision = Game.particleCollidedWithLine(particle,shouldRemove);
+        assertTrue(isCollision);
+    }
+    @Test
+    void testExplosionEnemyCollisionToTheRight() {
+        Game game = new Game();
+        Enemy enemy = new Enemy(876,425,880,430);
+        game.addParticles(enemy);
+        boolean isCollision = game.particleCollidedWithEnemy(enemy,true);
+        assertTrue(isCollision);
+    }
+    @Test
     void testExplosionPlayerCollisionToTheRight() {
-        Player player = new Player();
-        Point center = new Point(525,400);
-        int radius= 200;
-        boolean isCollision = player.isWithinRange(center,radius);
+        Game game = new Game();
+        Point location = new Point(876,425);
+        Point velocity = new Point(350,400);
+        ExplosionParticle particle = new ExplosionParticle(location,velocity);
+        boolean isCollision = game.particleCollidedWithPlayer(particle,true);
         assertTrue(isCollision);
     }
     @Test
     void testExplosionPlayerCollisionToTheLeft() {
-        Player player = new Player();
-        Point center = new Point(175,400);
-        int radius= 200;
-        boolean isCollision = player.isWithinRange(center,radius);
+        Game game = new Game();
+        Point location = new Point(799,425);
+        Point velocity = new Point(350,425);
+        ExplosionParticle particle = new ExplosionParticle(location,velocity);
+        boolean isCollision = game.particleCollidedWithPlayer(particle,true);
         assertTrue(isCollision);
     }
     @Test
     void testExplosionPlayerCollisionAbove() {
-        Player player = new Player();
-        Point center = new Point(400,175);
-        int radius= 200;
-        boolean isCollision = player.isWithinRange(center,radius);
+        Game game = new Game();
+        Point location = new Point(875,449);
+        Point velocity = new Point(350,400);
+        ExplosionParticle particle = new ExplosionParticle(location,velocity);
+        boolean isCollision = game.particleCollidedWithPlayer(particle,true);
         assertTrue(isCollision);
     }
     @Test
     void testExplosionPlayerCollisionBelow() {
-        Player player = new Player();
-        Point center = new Point(400,525);
-        int radius= 200;
-        boolean isCollision = player.isWithinRange(center,radius);
+        Game game = new Game();
+        Point location = new Point(875,501);
+        Point velocity = new Point(350,400);
+        ExplosionParticle particle = new ExplosionParticle(location,velocity);
+        boolean isCollision = game.particleCollidedWithPlayer(particle,true);
         assertTrue(isCollision);
     }
     @Test
     void testEnemyProjectileCollisionToTheRight() {
         GameState gameState = new GameState();
-        Enemy behemoth = new Enemy(350, 350, 50, 50);
+        Enemy behemoth = new Enemy(350, 400, 395, 400);
         Point2D direction = new Point2D.Double(450, 400);
-        Projectile projectile = new Projectile(445,400, direction);
+        Projectile projectile = new Projectile(395,400, direction, true);
         gameState.addEnemy(behemoth);
         boolean isCollision = behemoth.isCollidingWithProjectile(projectile);
         assertTrue(isCollision);
@@ -116,9 +142,9 @@ class GameStateTest {
     @Test
     void testEnemyProjectileCollisionToTheLeft() {
         GameState gameState = new GameState();
-        Enemy behemoth = new Enemy(350, 350, 50, 50);
+        Enemy behemoth = new Enemy(350, 350, 305, 375);
         Point2D direction = new Point2D.Double(350, 400);
-        Projectile projectile = new Projectile(350,400, direction);
+        Projectile projectile = new Projectile(350,375, direction, true);
         gameState.addEnemy(behemoth);
         boolean isCollision = behemoth.isCollidingWithProjectile(projectile);
         assertTrue(isCollision);
@@ -128,7 +154,7 @@ class GameStateTest {
         GameState gameState = new GameState();
         Enemy behemoth = new Enemy(350, 350, 50, 50);
         Point2D direction = new Point2D.Double(400, 350);
-        Projectile projectile = new Projectile(400,350, direction);
+        Projectile projectile = new Projectile(375,350, direction, true);
         gameState.addEnemy(behemoth);
         boolean isCollision = behemoth.isCollidingWithProjectile(projectile);
         assertTrue(isCollision);
@@ -138,7 +164,7 @@ class GameStateTest {
         GameState gameState = new GameState();
         Enemy behemoth = new Enemy(350, 350, 50, 50);
         Point2D direction = new Point2D.Double(400, 449);
-        Projectile projectile = new Projectile(400,449, direction);
+        Projectile projectile = new Projectile(375,399, direction , true);
         gameState.addEnemy(behemoth);
         boolean isCollision = behemoth.isCollidingWithProjectile(projectile);
         assertTrue(isCollision);
@@ -148,7 +174,7 @@ class GameStateTest {
         GameState gameState = new GameState();
         Enemy behemoth = new Enemy(350, 350, 50, 50);
         Point2D direction = new Point2D.Double(400, 400);
-        Projectile projectile = new Projectile(400,400, direction);
+        Projectile projectile = new Projectile(355,355, direction, true);
         gameState.addEnemy(behemoth);
         boolean isCollision = behemoth.isCollidingWithProjectile(projectile);
         assertTrue(isCollision);
@@ -158,7 +184,7 @@ class GameStateTest {
         GameState gameState = new GameState();
         Enemy behemoth = new Enemy(350, 350, 50, 50);
         Point2D direction = new Point2D.Double(500, 500);
-        Projectile projectile = new Projectile(500,500, direction);
+        Projectile projectile = new Projectile(500,500, direction, false);
         gameState.addEnemy(behemoth);
         boolean isCollision = behemoth.isCollidingWithProjectile(projectile);
         assertFalse(isCollision);
@@ -178,8 +204,8 @@ class GameStateTest {
     void testEnemyLineinteractionToTheRight() {
         GameState gameState = new GameState();
         Enemy behemoth = new Enemy(350, 350, 50, 50);
-        Point start = new Point(450,350);
-        Point end = new Point(450,450);
+        Point start = new Point(400,350);
+        Point end = new Point(400,375);
         Line line = new Line(start,end);
         gameState.addEnemy(behemoth);
         boolean isBlocked = behemoth.isIntersectingLine(line);
@@ -200,8 +226,8 @@ class GameStateTest {
     void testEnemyLineinteractionBelow() {
         GameState gameState = new GameState();
         Enemy behemoth = new Enemy(350, 350, 50, 50);
-        Point start = new Point(350,450);
-        Point end = new Point(450,450);
+        Point start = new Point(350,400);
+        Point end = new Point(375,399);
         Line line = new Line(start,end);
         gameState.addEnemy(behemoth);
         boolean isBlocked = behemoth.isIntersectingLine(line);
@@ -237,61 +263,63 @@ class GameStateTest {
         behemoth.removeHealth();
         behemoth.removeHealth();
         gameState.removeEnemy();
-        assertEquals(0, gameState.getBehemothCount());
+        assertEquals(0, gameState.getEnemyCount());
     }
     @Test
     void testAddLine() {
         GameState gameState = new GameState();
         Point start = new Point(350,350);
         Point end = new Point(450,450);
-        //arbitrary values to create a line
-        Component source = new Button();
-        MouseEvent e = new MouseEvent(source, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), 0, end.x, end.y, 1, false);
-        gameState.addLine(e, start);
-        assertEquals(1, gameState.getLineListSize());
+        gameState.addLine(end,start);
+        assertEquals(1, gameState.getLineCount());
     }
     @Test
     void testRemovePlayerHealth() {
-        Player player = new Player();
+        Game game = new Game();
         for(int i = 0; i < 10; i++) {
-            player.reduceHealth();
+            game.player.reduceHealth();
         }
-        assertTrue(player.isDead());
+        assertTrue(game.player.isDead());
     }
     @Test
     void testPlayerProjectileCollisionToTheRight() {
-        Point2D direction = new Point2D.Double(449, 400);
-        Projectile projectile = new Projectile(449,400, direction);
+        Point2D direction = new Point2D.Double(850, 425);
+        Projectile projectile = new Projectile(900,475, direction, false);
         //placing the projectile to the right of the player
-        boolean isCollision = projectile.isCollidingWithPlayer();
+        Game game = new Game();
+        boolean isCollision = projectile.isCollidingWithPlayer(game.player);
         assertTrue(isCollision);
     }
     @Test
     void testPlayerProjectileCollisionToTheLeft() {
-        Point2D direction = new Point2D.Double(350, 400);
-        Projectile projectile = new Projectile(350,400, direction);
-        boolean isCollision = projectile.isCollidingWithPlayer();
+        Point2D direction = new Point2D.Double(850, 400);
+        Projectile projectile = new Projectile(850,475, direction, false);
+        Game game = new Game();
+        boolean isCollision = projectile.isCollidingWithPlayer(game.player);
         assertTrue(isCollision);
     }
     @Test
     void testPlayerProjectileCollisionAbove() {
-        Point2D direction = new Point2D.Double(400, 350);
-        Projectile projectile = new Projectile(400,350, direction);
-        boolean isCollision = projectile.isCollidingWithPlayer();
+        Point2D direction = new Point2D.Double(875, 450);
+        Projectile projectile = new Projectile(875,449, direction, false);
+        Game game = new Game();
+        boolean isCollision = projectile.isCollidingWithPlayer(game.player);
         assertTrue(isCollision);
     }
     @Test
     void testPlayerProjectileCollisionBelow() {
-        Point2D direction = new Point2D.Double(400, 450);
-        Projectile projectile = new Projectile(400,449, direction);
-        boolean isCollision = projectile.isCollidingWithPlayer();
+        Point2D direction = new Point2D.Double(875, 500);
+        Projectile projectile = new Projectile(875,501, direction, false);
+        Game game = new Game();
+        boolean isCollision = projectile.isCollidingWithPlayer(game.player);
         assertTrue(isCollision);
     }
     @Test
     void testPlayerProjectileNotColliding() {
-        Point2D direction = new Point2D.Double(500, 500);
-        Projectile projectile = new Projectile(500,500, direction);
-        boolean isCollision = projectile.isCollidingWithPlayer();
+        Point2D direction = new Point2D.Double(800, 425);
+        Projectile projectile = new Projectile(800,425, direction, false);
+        Game game = new Game();
+        boolean isCollision = projectile.isCollidingWithPlayer(game.player);
         assertFalse(isCollision);
     }
 }
