@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact name="GunShipAlpha4:jar3">
+    <output-path>$PROJECT_DIR$/out/artifacts/GunShipAlpha4_jar3</output-path>
+    <root id="root">
+      <element id="archive" name="GunShipAlpha4.jar">
+        <element id="module-output" name="GunShipAlpha4" />
+      </element>
+      <element id="library" level="module" name="JUnit4" module-name="GunShipAlpha4" />
+      <element id="library" level="project" name="junit" />
+      <element id="library" level="module" name="JUnit5.8.1" module-name="GunShipAlpha4" />
+    </root>
+  </artifact>
+</component>
