@@ -30,7 +30,15 @@ public class Player {
         int spriteY = (canvasHeight - sprite.getHeight()) / 2;
         g.drawImage(sprite, spriteX, spriteY, null);
     }
-    public boolean isTouchedByEnemy(Enemy enemy, int canvasWidth, int canvasHeight) {
+    public boolean isTouchedbyBehemoth(Behemoth enemy, int canvasWidth, int canvasHeight) {
+        Rectangle playerBounds = new Rectangle((canvasWidth - sprite.getWidth()) / 2,
+                (canvasHeight - sprite.getHeight()) / 2,
+                sprite.getWidth(),
+                sprite.getHeight());
+        Rectangle enemyBounds = enemy.getBounds();
+        return playerBounds.intersects(enemyBounds);
+    }
+    public boolean isTouchedbyTank(Tank enemy, int canvasWidth, int canvasHeight) {
         Rectangle playerBounds = new Rectangle((canvasWidth - sprite.getWidth()) / 2,
                 (canvasHeight - sprite.getHeight()) / 2,
                 sprite.getWidth(),

@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.Timer;
 import java.awt.event.MouseAdapter;
@@ -11,8 +10,6 @@ public class Game extends Canvas {
     static MouseState ms = new MouseState();
     private Player player = new Player();
 private boolean gameOver = false;
-    private int waveNumber = 1;
-    private ArrayList<ExplosionParticle> ongoingExplosions = new ArrayList<>();
 
     public Game() {
         startGameLoop();
@@ -22,29 +19,18 @@ private boolean gameOver = false;
         Timer gameLoop = new Timer(16, e -> {
             if (player.isDead()) {
                 gameOver = true;
+                repaint();
             } else {
-                moveEnemies();
-                gs.handleProjectileCollison();
-                gs.checkBehemothPlayerCollisions(player, getWidth(), getHeight());
-                updateExplosions();
-                gs.removeDeadEnemies();
-                if (gs.areAllEnemiesDefeated() && !gameOver) {
-                    waveNumber++;
-                    int numberOfEnemies = 5 * waveNumber;
-                    spawnEnemies(numberOfEnemies);
-                }
+            moveEnemies();
+            boolean playerHit = gs.handleProjectileCollisionAndMoveEnemies();
+            if (gs.checkBehemothPlayerCollisions(player, getWidth(), getHeight()) || playerHit||gs.checkTankPlayerCollisions(player, getWidth(), getHeight())) {
+                player.reduceHealth();
             }
+
             repaint();
+            }
         });
         gameLoop.start();
-    }
-    private void updateExplosions() {
-        gs.forEachEnemy(enemy -> {
-            if (enemy instanceof Tank && enemy.isDead()) {
-                ongoingExplosions.addAll(((Tank) enemy).explode());
-            }
-        });
-        ongoingExplosions.forEach(ExplosionParticle::update);
     }
 
 
@@ -98,76 +84,32 @@ private boolean gameOver = false;
     }
 
     private void moveEnemies() {
-        gs.update(player);
+        gs.handleBehemothMovement();
+        gs.handleTankMovement();
         gs.removeExpiredProjectilesAndLines(getWidth(), getHeight());
-
     }
 
-    public void spawnNextWave() {
-        waveNumber++;
-        int enemiesToSpawn = waveNumber * 5;  // Adjust this formula as needed
-        spawnEnemies(enemiesToSpawn);
-    }
-
-    void spawnEnemies(int count) {
-        for (int i = 0; i < count; i++) {
-            if (!tryToSpawnEnemy()) {
-                System.out.println("Failed to spawn enemy #" + (i+1));
-            }
-        }
-    }
-
-    private boolean tryToSpawnEnemy() {
+    public void spawnBehemoths(int count) {
         Random rand = new Random();
-        boolean isTank = rand.nextBoolean();
-        System.out.println(isTank);
-        int maxAttempts = 10;
-        int attempts = 0;
-
-        while (attempts < maxAttempts) {
-            Game.spawnEnemiesRandomLocation result = getRandomLocation(rand);
-
-            if (canSpawnEnemyAt(result.x(), result.y())) {
-                spawnEnemyOfTypeAtLocation(isTank, result.x(), result.y());
-                return true;
-            } else {
-                attempts++;
-            }
+        for (int i = 0; i < count; i++) {
+            int side = rand.nextInt(4);
+            int x = 0, y = 0;
+            Game.spawnEnemiesRandomLocation result = getSpawnEnemiesRandomLocation(side, y, x, rand);
+            Behemoth behemoth = new Behemoth(result.x(), result.y(), getWidth() / 2, getHeight() / 2);
+            gs.addBehemoth(behemoth);
         }
-
-        return false;
     }
-
-    private Game.spawnEnemiesRandomLocation getRandomLocation(Random rand) {
-        int side = rand.nextInt(4);
-        int x = 0, y = 0;
-        return getSpawnEnemiesRandomLocation(side, y, x, rand);
-    }
-
-    private void spawnEnemyOfTypeAtLocation(boolean isTank, int x, int y) {
-        if (isTank) {
-            spawnTankAt(x, y);
-        } else {
-            spawnEnemyAt(x, y);
+    public void spawnTanks(int count) {
+        Random rand = new Random();
+        for (int i = 0; i < count; i++) {
+            int side = rand.nextInt(4);
+            int x = 0, y = 0;
+            Game.spawnEnemiesRandomLocation result = getSpawnEnemiesRandomLocation(side, y, x, rand);
+            Tank tank = new Tank(result.x(), result.y(), getWidth() / 2, getHeight() / 2); // Changed to Tank
+            gs.addTank(tank);
         }
     }
 
-    private boolean canSpawnEnemyAt(int x, int y) {
-        int width = 100;
-        int height = 100;
-        Rectangle newEnemyBounds = new Rectangle(x, y, width, height);
-        return !gs.isSpaceOccupied(newEnemyBounds);
-    }
-
-    private void spawnTankAt(int x, int y) {
-        Tank tank = new Tank(x, y, getWidth() / 2, getHeight() / 2);
-        gs.addEnemy(tank);
-    }
-
-    private void spawnEnemyAt(int x, int y) {
-        Enemy enemy = new Enemy(x, y, getWidth() / 2, getHeight() / 2);
-        gs.addEnemy(enemy);
-    }
 
     private spawnEnemiesRandomLocation getSpawnEnemiesRandomLocation(int side, int y, int x, Random rand) {
         switch (side) {
@@ -197,15 +139,12 @@ private boolean gameOver = false;
 
     @Override
     public void paint(Graphics g) {
-
         if (gameOver) {
             drawGameOverScreen(g);
         } else {
+            drawGameOverScreen(g);
             player.draw(g, getWidth(), getHeight());
             render(g);
-        }
-        for (ExplosionParticle explosion : ongoingExplosions) {
-            explosion.draw(g);
         }
     }
     private void drawGameOverScreen(Graphics g) {
