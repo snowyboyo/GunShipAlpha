@@ -5,11 +5,8 @@ class Projectile {
     private Point location;
    private Point2D difference;
    private static final double SPEED = 5.0;
-    private int lifespan;
-    private int distanceTravelled = 0;
 
     public Projectile(int x, int y, Point2D direction) {
-        this.lifespan = lifespan;
         this.location = new Point(x,y);
         double magnitude = Math.sqrt(direction.getX() * direction.getX() + direction.getY() * direction.getY());
         this.difference = new Point2D.Double(SPEED * direction.getX() / magnitude, SPEED * direction.getY() / magnitude);

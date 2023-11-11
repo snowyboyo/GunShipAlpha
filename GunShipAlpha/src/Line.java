@@ -20,5 +20,4 @@ public class Line {
     public boolean isExpired() {
         return System.currentTimeMillis() - creationTime > LINE_LIFETIME;
     }
-
 }
