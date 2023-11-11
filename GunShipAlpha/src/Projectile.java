@@ -23,6 +23,13 @@ class Projectile {
     public boolean isOutOfBounds(int canvasWidth, int canvasHeight) {
         return location.x < 0 || location.x > canvasWidth ||location.y < 0 || location.y > canvasHeight;
     }
+    public boolean isIntersected(Rectangle area) {
+        int width = 10;
+        int height = 10;
+        Rectangle bounds = new Rectangle(location.x, location.y, width, height);
+
+        return area.intersects(bounds);
+    }
     public boolean isInsideEnemy(Rectangle bounds) {
         return bounds.contains(location.x, location.y);
     }

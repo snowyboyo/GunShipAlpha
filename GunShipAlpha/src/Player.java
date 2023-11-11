@@ -3,7 +3,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-import javax.swing.*;
 
 public class Player {
     private int health = 10;
@@ -13,16 +12,14 @@ public class Player {
     }
     void loadSprite() {
         try {
-            sprite = ImageIO.read(new File("src/Images/GunShip.png"));
+            sprite = ImageIO.read(new File("GunShipAlpha/src/Images/GunShip.png"));
         } catch (IOException e) {
             throw new RuntimeException("Failed to load sprite", e);
         }
     }
 
     public void reduceHealth(){
-        System.out.println("reducing health");
         health--;
-        isDead();
     }
     public boolean isDead(){
         boolean dead = health <= 0;
@@ -42,4 +39,7 @@ public class Player {
         return playerBounds.intersects(enemyBounds);
     }
 
+    public void takeExplosionDamage() {
+        health -= 5;
+    }
 }

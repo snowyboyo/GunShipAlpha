@@ -3,28 +3,42 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 class GameState {
+    TankExplosion explosion = new TankExplosion();
+
 
     private CopyOnWriteArrayList<Enemy> enemies = new CopyOnWriteArrayList<>();
     private ArrayList<Line> lines = new ArrayList<>();
     private CopyOnWriteArrayList<Projectile> projectiles = new CopyOnWriteArrayList<>();
+    public boolean areAllEnemiesDefeated() {
+        return enemies.isEmpty();
+    }
 
-
-
-    void handleEnemyMovement() {
-        Iterator<Enemy> iterator = enemies.iterator();
-        while (iterator.hasNext()) {
-            Enemy enemy = iterator.next();
-            if (!isEnemyBlocked(enemy)) {
+    public void update(Player player) {
+        forEachEnemy(enemy -> {
+            if (!isBehemothBlocked(enemy)) {
                 enemy.moveTowardTarget();
-                removeEnemy();
             }
-        }
+            if (enemy instanceof Tank) {
+                Tank tank = (Tank) enemy;
+                if (tank.isDead()) {
+                    return;
+                }
+                if (explosion.shouldExplode(tank, lines, projectiles, player, 800, 800)) {
+                    tank.explode();
+                }
+            }
+        });
+    }
+    public void removeDeadEnemies() {
+        enemies.removeIf(Enemy::isDead);
     }
 
 
-    boolean isEnemyBlocked(Enemy enemy) {
+
+    boolean isBehemothBlocked(Enemy enemy) {
         for (Line line : lines) {
             if (enemy.isIntersectingLine(line)) {
                 return true;
@@ -33,12 +47,11 @@ class GameState {
         return false;
     }
 
-    boolean handleProjectileCollisionAndMoveEnemies() {
-        handleEnemyMovement();
+    boolean handleProjectileCollison() {
         boolean playerHit = false;
         ArrayList<Projectile> projectilesToRemove = new ArrayList<>();
         for (Projectile projectile : projectiles) {
-            if (doesProjectileHitAnyEnemy(projectile)) {
+            if (doesProjectileHitAnyBehemoths(projectile)) {
                 handleHitForProjectile(projectile, projectilesToRemove);
             }
             if (projectile.isCollidingWithPlayer()) {
@@ -51,7 +64,7 @@ class GameState {
         return playerHit;
     }
 
-    boolean doesProjectileHitAnyEnemy(Projectile projectile) {
+    boolean doesProjectileHitAnyBehemoths(Projectile projectile) {
         for (Enemy enemy : enemies) {
             if (enemy.isCollidingWithProjectile(projectile)) {
                 return true;
@@ -93,9 +106,15 @@ class GameState {
     void addEnemy(Enemy enemy) {
         enemies.add(enemy);
     }
+    public void forEachEnemy(Consumer<Enemy> action) {
+        for (Enemy enemy : enemies) {
+            action.accept(enemy);
+        }
+    }
 
     void addLine(MouseEvent e, Point startPoint) {
-        lines.add(new Line(startPoint, e.getPoint()));
+        Line newLine = new Line(startPoint, e.getPoint());
+        lines.add(newLine);
     }
 
     void addProjectile(Projectile projectile) {
@@ -119,9 +138,24 @@ class GameState {
             projectile.update();
         }
     }
-    public boolean checkEnemyPlayerCollisions(Player player, int canvasWidth, int canvasHeight) {
+    public boolean checkBehemothPlayerCollisions(Player player, int canvasWidth, int canvasHeight) {
         for (Enemy enemy : enemies) {
             if (player.isTouchedByEnemy(enemy, canvasWidth, canvasHeight)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public int getBehemothCount(){
+        return enemies.size();
+    }
+    public int getLineListSize(){
+        return lines.size();
+    }
+    public boolean isSpaceOccupied(Rectangle newEnemyBounds) {
+        for (Enemy existingEnemy : enemies) {
+            Rectangle existingEnemyBounds = existingEnemy.getBounds();
+            if (existingEnemyBounds.intersects(newEnemyBounds)) {
                 return true;
             }
         }

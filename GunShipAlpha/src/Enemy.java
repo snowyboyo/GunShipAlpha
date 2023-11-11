@@ -1,21 +1,25 @@
 import java.awt.*;
-import java.awt.geom.Point2D;
+        import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
+        import java.util.Timer;
+        import java.util.TimerTask;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 class Enemy {
-    private Point location;
+    Point location;
     private Point target;
-    private int health = 2;
+    int health = 2;
     private Timer firingTimer;
+    protected EnemySprites sprites;
 
     public Enemy(int x, int y, int targetX, int targetY) {
         this.location = new Point(x, y);
         this.target = new Point(targetX, targetY);
+        this.sprites = new EnemySprites("GunShipAlpha/src/Images/Behemoth.png");
         scheduleFiring();
     }
-    private void scheduleFiring() {
+     void scheduleFiring() {
         if (firingTimer != null) {
             firingTimer.cancel();
         }
@@ -32,7 +36,7 @@ class Enemy {
             }
         };
         Random random = new Random();
-        long delay = 0 + random.nextInt(3000);
+        long delay = random.nextInt(8000);
         firingTimer.schedule(firingTask, delay);
     }
     public void moveTowardTarget() {
@@ -55,26 +59,28 @@ class Enemy {
     void removeHealth() {
         health--;
         if (isDead()) {
-            firingTimer.cancel();
+            if (firingTimer != null) {
+                firingTimer.cancel();
+            }
         }
     }
     public boolean isCollidingWithProjectile(Projectile projectile) {
-        Rectangle enemyBounds = EnemySprite.getBounds(location.x, location.y);
+      Rectangle enemyBounds = sprites.getBounds(location.x, location.y);
         return projectile.isInsideEnemy(enemyBounds);
     }
     public void draw(Graphics g) {
-        EnemySprite.draw(g, location);
+        sprites.draw(g, location);
     }
     public boolean isDead() {
         return health <= 0;
     }
     public boolean isIntersectingLine(Line line) {
-        Rectangle enemyBounds = EnemySprite.getBounds(location.x, location.y);
+        Rectangle enemyBounds = sprites.getBounds(location.x, location.y);
         return line.intersects(enemyBounds);
     }
     public Projectile fireAtPlayer() {
         Point2D.Double directionVector = vectorBetween(location, target);
-        Point2D firePosition = EnemySprite.getFireOffset(location, target);
+        Point2D firePosition = sprites.getFireOffset(location, target);
         return new Projectile((int) firePosition.getX(), (int) firePosition.getY(),
                 directionVector);
     }
@@ -91,4 +97,64 @@ class Enemy {
         return new Rectangle(location.x, location.y, width, height);
     }
 
+
+}
+class Tank extends Enemy {
+    private ArrayList<ExplosionParticle> explosionParticles = new ArrayList<>();
+    private Random random = new Random();
+
+    public Tank(int x, int y, int targetX, int targetY) {
+        super(x, y, targetX, targetY);
+        this.sprites = new TankSprite();
+        this.health = 1;
+    }
+    public ArrayList<ExplosionParticle> explode() {
+        System.out.println("BOOM!");
+        ArrayList<ExplosionParticle> particles = createExplosionParticles();
+        health = 0;
+        Rectangle explosionArea = createExplosionArea();
+
+        return particles;
+    }
+
+    private Rectangle createExplosionArea() {
+        int explosionSize = 300;
+        Rectangle explosionArea = new Rectangle(
+                location.x - explosionSize / 2,
+                location.y - explosionSize / 2,
+                explosionSize,
+                explosionSize);
+        return explosionArea;
+    }
+
+    public boolean isIntersectingAnyLine(ArrayList<Line> lines) {
+        for (Line line : lines) {
+            if (this.isIntersectingLine(line)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isCollidingWithAnyProjectile(CopyOnWriteArrayList<Projectile> projectiles) {
+        for (Projectile projectile : projectiles) {
+            if (this.isCollidingWithProjectile(projectile)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    @Override
+    protected void scheduleFiring() {
+        //preventing tanks from firing projectiles by overriding it with empty method
+    }
+    private ArrayList<ExplosionParticle> createExplosionParticles() {
+        ArrayList<ExplosionParticle> particles = new ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            int velocityX = random.nextInt(10) - 5;
+            int velocityY = random.nextInt(10) - 5;
+            particles.add(new ExplosionParticle(new Point(location.x, location.y), new Point(velocityX, velocityY)));
+        }
+        return particles;
+    }
 }
