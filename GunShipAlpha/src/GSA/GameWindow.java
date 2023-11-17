@@ -34,5 +34,9 @@ public class GameWindow {
         frame.pack();
         frame.setMinimumSize(new Dimension(width, height));
         frame.setVisible(true);
+        restartButton.addActionListener(e -> {
+            gameCanvas.restartGame();
+            gameCanvas.requestFocusInWindow();
+        });
     }
 }

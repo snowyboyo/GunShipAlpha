@@ -3,7 +3,7 @@ package GSA;
 import java.awt.*;
 
 public class Line {
-        private Point start, end;
+        protected Point start, end;
          private long creationTime;
     private final long LINE_LIFETIME = 5000;
 

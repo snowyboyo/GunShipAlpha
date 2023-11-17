@@ -10,6 +10,7 @@ import static GSA.Game.gs;
 class Enemy {
     protected Point location;
     protected Point target;
+    protected CopyOnWriteArrayList<Line> collidedLines = new CopyOnWriteArrayList<>();
     protected int health = 2;
     private Timer firingTimer;
     protected EnemySprites sprites;
@@ -17,14 +18,19 @@ class Enemy {
     protected final int size = 50;
     protected double TAU = Math.PI * 2;
     protected double rotationAngle = 0.0;
+    protected boolean blockUp = false;
+    protected boolean blockDown = false;
+    protected boolean blockLeft = false;
+    protected boolean blockRight = false;
 
-    public Enemy(int x, int y, int targetX, int targetY) {
-        this.location = new Point(x, y);
-        this.target = new Point(targetX, targetY);
+    public Enemy(Point location, Point target) {
+        this.location = location;
+        this.target = new Point();
         this.sprites = new EnemySprites("Tank.png");
         this.rotationAngle = calculateRotationAngle(target);
         scheduleFiring();
     }
+
     public List<ExplosionParticle> returnLastGeneratedParticles(){
         return Collections.emptyList();
     }
@@ -32,9 +38,8 @@ class Enemy {
         return Collections.emptyList();
     }
     public void update(Explosion explosion, ArrayList<Line> lines, CopyOnWriteArrayList<Projectile> projectiles, Player player) {
-        if (!gs.isBehemothBlocked(this)) {
-            moveTowardTarget();
-        }
+        moveTowardTarget();
+        collidedLines.clear();
     }
     public double calculateRotationAngle(Point playerLocation) {
         double deltaY = playerLocation.y - location.y;
@@ -63,16 +68,37 @@ class Enemy {
         firingTimer.schedule(firingTask, delay);
     }
     public void moveTowardTarget() {
-        double dx = target.x  - location.x;
+        Point movement = calculateMovementVector();
+        for (Line line : collidedLines) {
+            Point collisionVector = isIntersectingLine(line);
+            if (!collisionVector.equals(new Point(0, 0))) {
+                double normalX = line.end.y - line.start.y;
+                double normalY = -(line.end.x - line.start.x);
+                double length = Math.sqrt(normalX * normalX + normalY * normalY);
+                normalX /= length;
+                normalY /= length;
+                double dotProduct = movement.x * normalX + movement.y * normalY;
+                movement.x -= 2 * dotProduct * normalX;
+                movement.y -= 2 * dotProduct * normalY;
+            }
+        }
+        applyMovement(movement);
+    }
+
+    protected Point calculateMovementVector() {
+        double dx = target.x - location.x;
         double dy = target.y - location.y;
         double distance = Math.sqrt(dx * dx + dy * dy);
-        double unitX = dx / distance;
-        double unitY = dy / distance;
-        int speed = 4;
-        double velocityX = unitX * speed;
-        double velocityY = unitY * speed;
-        location.x += (int) velocityX;
-        location.y += (int) velocityY;
+        double normalizedX = dx / distance;
+        double normalizedY = dy / distance;
+        double speedLimit = 4.0;
+        int movementX = (int)(normalizedX * speedLimit);
+        int movementY = (int)(normalizedY * speedLimit);
+        return new Point(movementX, movementY);
+    }
+    protected void applyMovement(Point movement) {
+        location.x += movement.x;
+        location.y += movement.y;
     }
     public void setTarget(Point newTarget) {
         this.target = newTarget;
@@ -123,10 +149,36 @@ class Enemy {
     public boolean isDead() {
         return health <= 0;
     }
-    public boolean isIntersectingLine(Line line) {
-        Rectangle enemyBounds = sprites.getBounds(location.x, location.y);
-        return line.intersects(enemyBounds);
+    public Point isIntersectingLine(Line line) {
+        Rectangle enemyBounds = getBounds();
+        Point collisionResolution = new Point(0, 0);
+        if (!line.intersects(enemyBounds)) {
+            return collisionResolution;
+        }
+        if (line.start.x == line.end.x) {
+            collisionResolution.x = (location.x < line.start.x) ? (enemyBounds.x - line.start.x) : (enemyBounds.x + enemyBounds.width - line.start.x);
+        } else if (line.start.y == line.end.y) {
+            collisionResolution.y = (location.y < line.start.y) ? (enemyBounds.y - line.start.y) : (enemyBounds.y + enemyBounds.height - line.start.y);
+        } else {
+            collisionResolution = calculateDiagonalCollisionResolution(line, enemyBounds);
+        }
+        collidedLines.add(line);
+        return collisionResolution;
     }
+
+    private Point calculateDiagonalCollisionResolution(Line line, Rectangle enemyBounds) {
+        double lineSlope = (double)(line.end.y - line.start.y) / (line.end.x - line.start.x);
+        double lineIntercept = line.start.y - lineSlope * line.start.x;
+        Point enemyCenter = new Point(enemyBounds.x + enemyBounds.width / 2, enemyBounds.y + enemyBounds.height / 2);
+        double perpendicularSlope = -1 / lineSlope;
+        double enemyLineIntercept = enemyCenter.y - perpendicularSlope * enemyCenter.x;
+        double intersectionX = (enemyLineIntercept - lineIntercept) / (lineSlope - perpendicularSlope);
+        double intersectionY = lineSlope * intersectionX + lineIntercept;
+        Point intersectionPoint = new Point((int)intersectionX, (int)intersectionY);
+        Point collisionResolution = new Point(enemyCenter.x - intersectionPoint.x, enemyCenter.y - intersectionPoint.y);
+        return collisionResolution;
+    }
+
     public Projectile fireAtPlayer() {
         Point2D.Double directionVector = vectorBetween(location, target);
         Point2D firePosition = sprites.getFireOffset(location, target);
@@ -153,8 +205,8 @@ class Mine extends Enemy {
     private Random random = new Random();
 
 
-    public Mine(int x, int y, int targetX, int targetY, Mediator M) {
-        super(x, y, targetX, targetY);
+    public Mine(Point location, Point target, Mediator M) {
+        super(location, target);
         this.sprites = new MineSprite();
         this.health = 1;
         this.M = M;
@@ -199,7 +251,7 @@ class Mine extends Enemy {
 
     public boolean isIntersectingAnyLine(ArrayList<Line> lines) {
         for (Line line : lines) {
-            if (this.isIntersectingLine(line)) {
+            if (line.intersects(getBounds())) {
                 return true;
             }
         }
@@ -254,17 +306,21 @@ class Mine extends Enemy {
 
 class Ginker extends Enemy {
 
-    public Ginker(int x, int y, int targetX, int targetY) {
-        super(x, y, targetX, targetY);
+    public Ginker(Point location, Point target) {
+        super(location,target);
         this.sprites = new GinkerSprite();
     }
     @Override
-    public void moveTowardTarget() {
-        if (hasEnemyReachedTarget()) return;
-        if (location.x < target.x) location.x += 4;
-        if (location.x> target.x) location.x -= 4;
-        if (location.y < target.y) location.y += 4;
-        if (location.y > target.y) location.y -= 4;
+    protected Point calculateMovementVector() {
+        double dx = target.x - location.x;
+        double dy = target.y - location.y;
+        double distance = Math.sqrt(dx * dx + dy * dy);
+        double normalizedX = dx / distance;
+        double normalizedY = dy / distance;
+        double speedLimit = 8.0;
+        int movementX = (int)(normalizedX * speedLimit);
+        int movementY = (int)(normalizedY * speedLimit);
+        return new Point(movementX, movementY);
     }
     @Override
     protected void scheduleFiring() {
@@ -274,8 +330,8 @@ class Ginker extends Enemy {
 }
 class Behemoth extends Enemy {
 
-    public Behemoth(int x, int y, int targetX, int targetY) {
-        super(x, y, targetX, targetY);
+    public Behemoth(Point location, Point target) {
+        super(location,target);
         this.sprites = new BehemothSprite();
         this.health = 3;
     }

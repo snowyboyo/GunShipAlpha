@@ -29,21 +29,18 @@ class GameState {
             tank.setTarget(newTarget);
         }
     }
+    public void enemyCollidedWithLine(){
+            for (Line line : lines) {
+                for (Enemy enemy : enemies){
+                    enemy.isIntersectingLine(line);
+                }
+            }
+
+    }
 
     public void removeDeadEnemies() {
         enemies.removeIf(Enemy::isDead);
     }
-
-
-    boolean isBehemothBlocked(Enemy enemy) {
-        for (Line line : lines) {
-            if (enemy.isIntersectingLine(line)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     boolean handleProjectileCollison(Player player, Game game) {
         boolean playerHit = false;
         ArrayList<Projectile> projectilesToRemove = new ArrayList<>();

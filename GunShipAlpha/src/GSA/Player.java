@@ -27,6 +27,10 @@ public class Player {
     public void reduceHealth(){
         health--;
     }
+    public void resetLocation(){
+        location = new  Point(850,450);
+    }
+
     public void resetHealth(){health = 10;}
     public boolean isDead() {
         boolean dead = health <= 0;

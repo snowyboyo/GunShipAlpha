@@ -50,12 +50,12 @@ public class Game extends Canvas implements Mediator, KeyListener {
 
     public Game() {
         try {
-            splashImage1 = ImageIO.read(Objects.requireNonNull(getClass().getResource("/images/SplashSscreen.png")));
+            splashImage1 = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Images/SplashSscreen.png")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         try {
-            splashImage2 = ImageIO.read(Objects.requireNonNull(getClass().getResource("/images/SplashScreen.png")));
+            splashImage2 = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Images/SplashScreen.png")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -108,6 +108,7 @@ public class Game extends Canvas implements Mediator, KeyListener {
         moveEnemies();
         updateTankTargets(player.location);
         gs.handleProjectileCollison(player,this);
+        gs.enemyCollidedWithLine();
         gs.checkBehemothPlayerCollisions(player,this);
         updateTargets();
         gs.removeDeadEnemies();
@@ -194,7 +195,6 @@ public class Game extends Canvas implements Mediator, KeyListener {
         }
     }
     protected void restartGame() {
-            if (gameOver) {
                 explosionParticles.clear();
                 waveNumber = 0;
                 score = 0;
@@ -203,7 +203,9 @@ public class Game extends Canvas implements Mediator, KeyListener {
                 gs.projectiles.clear();
                 gs.lines.clear();
                 player.resetHealth();
-        }
+                keysPressed.clear();
+                player.resetLocation();
+
     }
 
     public void updateEnemies() {
@@ -376,9 +378,8 @@ public class Game extends Canvas implements Mediator, KeyListener {
 
         while (attempts < maxAttempts) {
             Game.spawnEnemiesRandomLocation result = getRandomLocation(rand);
-
-            if (canSpawnEnemyAt(result.x(), result.y())) {
-                spawnEnemyOfTypeAtLocation(enemyType, result.x(), result.y());
+            if (canSpawnEnemyAt(result.location())) {
+                spawnEnemyOfTypeAtLocation(enemyType,result.location());
                 return true;
             } else {
                 attempts++;
@@ -390,77 +391,77 @@ public class Game extends Canvas implements Mediator, KeyListener {
 
     private Game.spawnEnemiesRandomLocation getRandomLocation(Random rand) {
         int side = rand.nextInt(4);
-        int x = 0, y = 0;
-        return getSpawnEnemiesRandomLocation(side, y, x, rand);
+        return getSpawnEnemiesRandomLocation(side, rand);
     }
 
-    private void spawnEnemyOfTypeAtLocation(int enemyType, int x, int y) {
+    private void spawnEnemyOfTypeAtLocation(int enemyType, Point location) {
         if (enemyType == 1) {
-            spawnMineAt(x, y);
+            spawnMineAt(location);
         } else if (enemyType == 2) {
-            spawnEnemyAt(x, y);
+            spawnEnemyAt(location);
         } else if (enemyType == 3) {
-            spawnGinkerAt(x, y);
+            spawnGinkerAt(location);
         } else {
-            spawnBehemothAt(x, y);
+            spawnBehemothAt(location);
         }
     }
 
-    private boolean canSpawnEnemyAt(int x, int y) {
+    private boolean canSpawnEnemyAt(Point location) {
         int width = 50;
         int height =50;
-        Rectangle newEnemyBounds = new Rectangle(x, y, width, height);
+        Rectangle newEnemyBounds = new Rectangle(location.x, location.y, width, height);
         return !gs.isSpaceOccupied(newEnemyBounds);
     }
 
-    private void spawnMineAt(int x, int y) {
-        Mine mine = new Mine(x, y, getWidth() / 2, getHeight() / 2, this);
+    private void spawnMineAt(Point location) {
+
+        Mine mine = new Mine(location, player.location, this);
         gs.addEnemy(mine);
     }
 
-    private void spawnGinkerAt(int x, int y) {
-        Ginker ginker = new Ginker(x, y, getWidth() / 2, getHeight() / 2);
+    private void spawnGinkerAt(Point location) {
+        Ginker ginker = new Ginker(location, player.location);
         gs.addEnemy(ginker);
     }
 
-    private void spawnBehemothAt(int x, int y) {
-        Behemoth behemoth = new Behemoth(x, y, getWidth() / 2, getHeight() / 2);
+    private void spawnBehemothAt(Point location) {
+        Behemoth behemoth = new Behemoth(location, player.location);
         gs.addEnemy(behemoth);
     }
 
-    private void spawnEnemyAt(int x, int y) {
-        Enemy enemy = new Enemy(x, y, getWidth() / 2, getHeight() / 2);
+    private void spawnEnemyAt(Point location) {
+        Enemy enemy = new Enemy(location, player.location);
         gs.addEnemy(enemy);
     }
 
-    private spawnEnemiesRandomLocation getSpawnEnemiesRandomLocation(int side, int y, int x, Random rand) {
+    private spawnEnemiesRandomLocation getSpawnEnemiesRandomLocation(int side, Random rand) {
+       Point location = new Point();
         if (getWidth() > 0 && getHeight() > 0) {
             switch (side) {
-                case 0:
-                    y = 0;
-                    x = rand.nextInt(getWidth());
-                    break;
-                case 1:
-                    x = getWidth();
-                    y = rand.nextInt(getHeight());
-                    break;
-                case 2:
-                    y = getHeight();
-                    x = rand.nextInt(getWidth());
-                    break;
-                case 3:
-                    x = 0;
-                    y = rand.nextInt(getHeight());
-                    break;
+                case 0 -> {
+                    location.y = 0;
+                    location.x = rand.nextInt(getWidth());
+                }
+                case 1 -> {
+                    location.x = getWidth() - 1;
+                    location.y = rand.nextInt(getHeight());
+                }
+                case 2 -> {
+                    location.y = getHeight() - 1;
+                    location.x = rand.nextInt(getWidth());
+                }
+                case 3 -> {
+                    location.x = 0;
+                    location.y = rand.nextInt(getHeight());
+                }
             }
         }
-            spawnEnemiesRandomLocation result = new spawnEnemiesRandomLocation(x, y);
-            return result;
+        return new spawnEnemiesRandomLocation(location);
     }
 
 
 
-    private record spawnEnemiesRandomLocation(int x, int y) {
+    private record spawnEnemiesRandomLocation(Point location) {
     }
 
     @Override
